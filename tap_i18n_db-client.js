@@ -5,21 +5,20 @@ const removeTrailingUndefs = share.helpers.removeTrailingUndefs;
 extend = $.extend;
 
 share.i18nCollectionTransform = function(doc, collection) {
-var collection_base_language, dialect_of, i, language, len, ref, route;
-ref = collection._disabledOnRoutes;
-for (i = 0, len = ref.length; i < len; i++) {
-  route = ref[i];
-  if (route.test(window.location.pathname)) {
+  ref = collection._disabledOnRoutes;
+  for (var i = 0; i < ref.length; i++) {
+    var route = ref[i];
+    if (route.test(window.location.pathname)) {
+      return doc;
+    }
+  }
+  const collection_base_language = collection._base_language;
+  var language = TAPi18n.getLanguage();
+  if ((language == null) || (doc.i18n == null)) {
+    delete doc.i18n;
     return doc;
   }
-}
-collection_base_language = collection._base_language;
-language = TAPi18n.getLanguage();
-if ((language == null) || (doc.i18n == null)) {
-  delete doc.i18n;
-  return doc;
-}
-dialect_of = share.helpers.dialectOf(language);
+  const dialect_of = share.helpers.dialectOf(language);
   doc = _.extend({}, doc); // protect original object
   if ((dialect_of != null) && (doc.i18n[dialect_of] != null)) {
     if (language !== collection_base_language) {
@@ -38,19 +37,18 @@ dialect_of = share.helpers.dialectOf(language);
 };
 
 share.i18nCollectionExtensions = function(obj) {
-  var fn, local_session, method, original;
-  original = {
+  const original = {
     find: obj.find,
     findOne: obj.findOne
   };
-  local_session = new ReactiveDict();
-  fn = function(method) {
+  const local_session = new ReactiveDict();
+  const fn = function(method) {
     return obj[method] = function(selector, options) {
       local_session.get("force_lang_switch_reactivity_hook");
       return original[method].apply(obj, removeTrailingUndefs([selector, options]));
     };
   };
-  for (method in original) {
+  for (var method in original) {
     fn(method);
   }
   obj.forceLangSwitchReactivity = _.once(function() {
@@ -69,14 +67,13 @@ share.i18nCollectionExtensions = function(obj) {
 };
 
 TAPi18n.subscribe = function(name) {
-  var callbacks, current_computation, lastParam, local_session, onErrorCalled, onReadyCalled, original_onReady, params, subscribe, subscription, subscription_computation;
-  local_session = new ReactiveDict;
+  const local_session = new ReactiveDict;
   local_session.set("ready", false);
   // parse arguments
-  params = Array.prototype.slice.call(arguments, 1);
-  callbacks = {};
+  var params = Array.prototype.slice.call(arguments, 1);
+  var callbacks = {};
   if (params.length) {
-    lastParam = params[params.length - 1];
+    var lastParam = params[params.length - 1];
     if (typeof lastParam === "function") {
       callbacks.onReady = params.pop();
     } else if (lastParam && (typeof lastParam.onReady === "function" || typeof lastParam.onError === "function")) {
@@ -84,9 +81,9 @@ TAPi18n.subscribe = function(name) {
     }
   }
   // We want the onReady/onError methods to be called only once (not for every language change)
-  onReadyCalled = false;
-  onErrorCalled = false;
-  original_onReady = callbacks.onReady;
+  var onReadyCalled = false;
+  var onErrorCalled = false;
+  const original_onReady = callbacks.onReady;
   callbacks.onReady = function() {
     if (onErrorCalled) {
       return;
@@ -103,9 +100,9 @@ TAPi18n.subscribe = function(name) {
       }
     };
   }
-  subscription = null;
-  subscription_computation = null;
-  subscribe = function() {
+  var subscription = null;
+  var subscription_computation = null;
+  const subscribe = function() {
     // subscription_computation, depends on TAPi18n.getLanguage(), to
     // resubscribe once the language gets changed.
     return subscription_computation = Deps.autorun(function() {
@@ -120,7 +117,7 @@ TAPi18n.subscribe = function(name) {
   // behavior (which never gets invalidated), we don't want the computation to
   // get invalidated when TAPi18n.getLanguage get invalidated (when language get
   // changed).
-  current_computation = Deps.currentComputation;
+  var current_computation = Deps.currentComputation;
   if (typeof currentComputation !== "undefined" && currentComputation !== null) {
     // If TAPi18n.subscribe was called in a computation, call subscribe in a
     // non-reactive context, but make sure that if the computation is getting
