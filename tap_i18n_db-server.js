@@ -1,5 +1,5 @@
 var indexOf = [].indexOf;
-
+var share = globals; 
 const Fiber = Npm.require('fibers');
 
 share.i18nCollectionExtensions = function(obj) {

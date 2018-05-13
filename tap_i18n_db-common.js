@@ -1,5 +1,5 @@
 var indexOf = [].indexOf;
-
+var share = globals; 
 TAPi18n.Collection = function(name, options = {}) {
   var collection, original_transform;
   // Set the transform option

@@ -1,9 +1,5 @@
-var extend;
-
 const removeTrailingUndefs = share.helpers.removeTrailingUndefs;
-
-extend = $.extend;
-
+var share = globals; 
 share.i18nCollectionTransform = function(doc, collection) {
   ref = collection._disabledOnRoutes;
   for (var i = 0; i < ref.length; i++) {
