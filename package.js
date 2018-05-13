@@ -6,9 +6,9 @@ Package.describe({
 });
 
 Package.on_use(function (api) {
-  api.versionsFrom('METEOR@0.9.1');
+  api.versionsFrom('METEOR@1.6.1');
 
-  api.use(["coffeescript", "underscore", "meteor", "jquery", "reactive-dict"], ['server', 'client']);
+  api.use(["underscore", "meteor", "jquery", "reactive-dict"], ['server', 'client']);
 
   api.use("autopublish", ['server', 'client'], {weak: true})
 
@@ -18,7 +18,7 @@ Package.on_use(function (api) {
   api.use('yogiben:admin@1.1.0', {weak: true});
 
   api.add_files('globals.js', ['client', 'server']);
-  api.add_files('tap_i18n_db-common.coffee', ['client', 'server']);
-  api.add_files('tap_i18n_db-server.coffee', 'server');
-  api.add_files('tap_i18n_db-client.coffee', 'client');
+  api.add_files('tap_i18n_db-common.js', ['client', 'server']);
+  api.add_files('tap_i18n_db-server.js', 'server');
+  api.add_files('tap_i18n_db-client.js', 'client');
 });
