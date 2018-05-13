@@ -1,5 +1,5 @@
 var indexOf = [].indexOf;
-var share = globals; 
+
 const Fiber = Npm.require('fibers');
 
 share.i18nCollectionExtensions = function(obj) {
@@ -7,14 +7,14 @@ share.i18nCollectionExtensions = function(obj) {
     var lang;
     var current_language = Fiber.current.language_tag;
     if (typeof current_language === "undefined") {
-      throw new Meteor.Error(500, "TAPi18n.i18nFind should be called only from TAPi18n.publish functions");
+      throw new Meteor.Error(500, "i18nCollection.i18nFind should be called only from Meteor.i18nPublish functions");
     }
     if (_.isUndefined(selector)) {
       selector = {};
     }
     var dialect_of = share.helpers.dialectOf(current_language);
     var collection_base_language = this._base_language;
-    var supported_languages = TAPi18n.conf.supported_languages;
+    var supported_languages = Meteor.settings.supported_languages;
     if ((current_language != null) && !(indexOf.call(supported_languages, current_language) >= 0)) {
       throw new Meteor.Error(400, "Not supported language");
     }
@@ -85,9 +85,9 @@ share.i18nCollectionExtensions = function(obj) {
   return obj;
 };
 
-TAPi18n.publish = function(name, handler, options) {
+Meteor.i18nPublish = function(name, handler, options) {
   if (name === null) {
-    throw new Meteor.Error(500, "TAPi18n.publish doesn't support null publications");
+    throw new Meteor.Error(500, "Meteor.i18nPublish doesn't support null publications");
   }
   const i18n_handler = function() {
     var args = Array.prototype.slice.call(arguments);

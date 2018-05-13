@@ -1,5 +1,5 @@
 const removeTrailingUndefs = share.helpers.removeTrailingUndefs;
-var share = globals; 
+
 share.i18nCollectionTransform = function(doc, collection) {
   ref = collection._disabledOnRoutes;
   for (var i = 0; i < ref.length; i++) {
@@ -9,7 +9,7 @@ share.i18nCollectionTransform = function(doc, collection) {
     }
   }
   const collection_base_language = collection._base_language;
-  var language = TAPi18n.getLanguage();
+  var language = Meteor.settings.currentLanguage;
   if ((language == null) || (doc.i18n == null)) {
     delete doc.i18n;
     return doc;
@@ -49,7 +49,7 @@ share.i18nCollectionExtensions = function(obj) {
   }
   obj.forceLangSwitchReactivity = _.once(function() {
     Deps.autorun(function() {
-      return local_session.set("force_lang_switch_reactivity_hook", TAPi18n.getLanguage());
+      return local_session.set("force_lang_switch_reactivity_hook", Meteor.settings.currentLanguage);
     });
   });
   obj._disabledOnRoutes = [];
@@ -62,7 +62,7 @@ share.i18nCollectionExtensions = function(obj) {
   return obj;
 };
 
-TAPi18n.subscribe = function(name) {
+Meteor.i18nSubscribe = function(name) {
   const local_session = new ReactiveDict;
   local_session.set("ready", false);
   // parse arguments
@@ -99,11 +99,11 @@ TAPi18n.subscribe = function(name) {
   var subscription = null;
   var subscription_computation = null;
   const subscribe = function() {
-    // subscription_computation, depends on TAPi18n.getLanguage(), to
+    // subscription_computation, depends on Meteor.settings.currentLanguage, to
     // resubscribe once the language gets changed.
     return subscription_computation = Deps.autorun(function() {
       var lang_tag;
-      lang_tag = TAPi18n.getLanguage();
+      lang_tag = Meteor.settings.currentLanguage;
       subscription = Meteor.subscribe.apply(this, removeTrailingUndefs([].concat(name, params, lang_tag, callbacks)));
       // if the subscription is already ready: 
       return local_session.set("ready", subscription.ready());

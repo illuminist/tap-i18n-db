@@ -1,6 +1,7 @@
 var indexOf = [].indexOf;
-var share = globals; 
-TAPi18n.Collection = function(name, options = {}) {
+share = {}; 
+
+i18nCollection = function(name, options = {}) {
   var collection, original_transform;
   // Set the transform option
   if (Meteor.isClient) {
@@ -57,14 +58,12 @@ const commonCollectionExtensions = function(obj) {
   };
 
   const verifyI18nEnabled = function(attempted_operation, callback) {
-    if (TAPi18n._enabled()) {
-      return;
-    }
-    return throwError(new Meteor.Error(400, "TAPi18n is not supported"), attempted_operation, callback);
+    //TODO find another way to config i18n enable/disable
+    return true;
   };
 
   const isSupportedLanguage = function(lang, attempted_operation, callback) {
-    if (indexOf.call(TAPi18n.conf.supported_languages, lang) >= 0) {
+    if (indexOf.call(Meteor.settings.supported_languages, lang) >= 0) {
       return;
     }
     return throwError(new Meteor.Error(400, `Not supported language: ${lang}`), attempted_operation, callback);
@@ -74,7 +73,7 @@ const commonCollectionExtensions = function(obj) {
     // if no language_tag & isClient, try to get env lang
     if (Meteor.isClient) {
       if (language_tag == null) {
-        language_tag = TAPi18n.getLanguage();
+        language_tag = Meteor.settings.currentLanguage;
       }
     }
     if (language_tag != null) {

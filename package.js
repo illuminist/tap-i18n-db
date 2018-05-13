@@ -12,13 +12,14 @@ Package.on_use(function (api) {
 
   api.use("autopublish", ['server', 'client'], {weak: true})
 
-  api.use('tap:i18n@1.0.3', ['client', 'server']);
-  api.imply('tap:i18n', ['client', 'server']);
-
   api.use('yogiben:admin@1.1.0', {weak: true});
+
+  
 
   api.add_files('globals.js', ['client', 'server']);
   api.add_files('tap_i18n_db-common.js', ['client', 'server']);
   api.add_files('tap_i18n_db-server.js', 'server');
   api.add_files('tap_i18n_db-client.js', 'client');
+
+  api.export('i18nCollection', ['client', 'server']);
 });
