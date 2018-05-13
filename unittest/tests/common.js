@@ -1,33 +1,33 @@
 var col, collection_classes_map, init_collections, languages, max_document_id, test_collections, translations_editing_tests_collection, _class, _fn, _i, _len, _ref;
 
 test_collections = share.test_collections = {
-  a: new TAPi18n.Collection("a"),
-  b: new TAPi18n.Collection("b"),
-  c: new TAPi18n.Collection("c"),
-  a_aa: new TAPi18n.Collection("a_aa", {
+  a: new i18nCollection("a"),
+  b: new i18nCollection("b"),
+  c: new i18nCollection("c"),
+  a_aa: new i18nCollection("a_aa", {
     base_language: "aa"
   }),
-  b_aa: new TAPi18n.Collection("b_aa", {
+  b_aa: new i18nCollection("b_aa", {
     base_language: "aa"
   }),
-  c_aa: new TAPi18n.Collection("c_aa", {
+  c_aa: new i18nCollection("c_aa", {
     base_language: "aa"
   })
 };
 
-test_collections["a_aa-AA"] = new TAPi18n.Collection("a_aa-AA", {
+test_collections["a_aa-AA"] = new i18nCollection("a_aa-AA", {
   base_language: "aa-AA"
 });
 
-test_collections["b_aa-AA"] = new TAPi18n.Collection("b_aa-AA", {
+test_collections["b_aa-AA"] = new i18nCollection("b_aa-AA", {
   base_language: "aa-AA"
 });
 
-test_collections["c_aa-AA"] = new TAPi18n.Collection("c_aa-AA", {
+test_collections["c_aa-AA"] = new i18nCollection("c_aa-AA", {
   base_language: "aa-AA"
 });
 
-translations_editing_tests_collection = new TAPi18n.Collection("trans_editing");
+translations_editing_tests_collection = new i18nCollection("trans_editing");
 
 translations_editing_tests_collection.allow({
   insert: function() {
@@ -137,7 +137,7 @@ if (Meteor.isServer) {
   init_collections();
   _ref = ["a", "b", "c"];
   _fn = function(_class) {
-    return TAPi18n.publish("class_" + _class, function(fields) {
+    return Meteor.i18nPublish("class_" + _class, function(fields) {
       var cursors;
       if (fields == null) {
         fields = null;
