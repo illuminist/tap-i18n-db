@@ -23,19 +23,3 @@ Package.on_use(function (api) {
 
   api.export('i18nCollection', ['client', 'server']);
 });
-Package.on_test(function (api) {
-  //
-  // DO NOT ADD THIS Package.on_test TO GIT!!!
-  // DO NOT ADD THIS Package.on_test TO GIT!!!
-  // DO NOT ADD THIS Package.on_test TO GIT!!!
-  //
-  api.use(['underscore', 'tinytest', 'test-helpers', 'templating', 'jquery', "reactive-dict"], ['client', 'server']);
-
-  
-
-  api.use('tap:i18n-db', ['client', 'server']);
-
-  api.add_files('unittest/tests/helpers.js', ['client', 'server']);
-  api.add_files('unittest/tests/common.js', ['client', 'server']);
-api.add_files('unittest/tests/enabled.js', ['client', 'server']);
-});

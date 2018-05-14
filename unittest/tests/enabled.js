@@ -20,7 +20,9 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid te
       b: 2,
       d: 4
     }
-  })
+  },function(err,id){
+    console.log(err,id);
+  });
   return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
@@ -33,7 +35,7 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid te
       }
     },
     _id: _id
-  });
+  },"Able to insert");
 });
 
 Tinytest.add('tap-i18n-db - translations editing - insertTranslations - no translations', function(test) {
@@ -52,7 +54,7 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - no trans
 
 Tinytest.addAsync('tap-i18n-db - translations editing - insertTranslations - unsupported lang', function(test, onComplete) {
   var result;
-  return result = translations_editing_tests_collection.insertTranslations({
+  result = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
   }, {
@@ -212,20 +214,21 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - emp
       x: 1
     }
   });
-  var result = translations_editing_tests_collection.updateTranslations(_id);
-  test.equal(translations_editing_tests_collection.findOne(_id, {
-    transform: null
-  }), {
-    a: 1,
-    i18n: {
-      aa: {
-        x: 1
-      }
-    },
-    _id: _id
+  // After 2014 version of mongodb, empty modifier wasn't allowed anymore
+  translations_editing_tests_collection.updateTranslations(_id,{},function(err,id){
+    test.equal(translations_editing_tests_collection.findOne(_id, {
+      transform: null
+    }), {
+      a: 1,
+      i18n: {
+        aa: {
+          x: 1
+        }
+      },
+      _id: _id
+    });
+    return onComplete();
   });
-  test.equal(result, 1, "Correct number of affected documents");
-  return onComplete();
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - unsupported lang', function(test, onComplete) {
@@ -320,8 +323,13 @@ Tinytest.add('tap-i18n-db - translations editing - remove translation - valid re
   });
   result = translations_editing_tests_collection.removeTranslations(_id, ["en.a", "aa.y", "aa-AA"]);
   test.equal(result, 1, "Correct number of affected documents");
-  result = translations_editing_tests_collection.removeTranslations(_id, [], {});
-  test.equal(result, 1, "Correct number of affected documents");
+  var errMsg;
+  try{
+    result = translations_editing_tests_collection.removeTranslations(_id, [], {});
+  }catch(err){
+    errMsg = err.message;
+  }
+  test.equal(errMsg, "'$unset' is empty. You must specify a field like so: {$unset: {<field>: ...}}", "Exception from empty remove");
   return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
@@ -403,8 +411,13 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - valid 
   result = translations_editing_tests_collection.removeLanguage(_id, ["x"], "aa", {}, function(err, affected_rows) {
     return test.equal(affected_rows, 1, "Correct number of affected documents");
   });
-  result = translations_editing_tests_collection.removeLanguage(_id, [], "aa");
-  test.equal(result, 1, "Correct number of affected documents");
+  var errMsg;
+  try{
+    result = translations_editing_tests_collection.removeLanguage(_id, [], "aa");
+  }catch(err){
+    errMsg = err.message;
+  }
+  test.equal(errMsg, "'$unset' is empty. You must specify a field like so: {$unset: {<field>: ...}}", "Exception from empty remove");
   return result = translations_editing_tests_collection.removeLanguage(_id, null, "aa-AA", function(err, affected_rows) {
     return Meteor.setTimeout((function() {
       test.equal(affected_rows, 1, "Correct number of affected documents");
@@ -482,7 +495,7 @@ if (Meteor.isServer) {
 
 if (Meteor.isClient) {
   document.title = "UnitTest: tap-i18n-db used in a tap-i18n enabled project";
-  supported_languages = _.keys(Meteor.settings.currentLanguage);
+  supported_languages = Meteor.settings.supportedLanguages;
   max_document_id = share.max_document_id;
   get_general_classed_collections = function(class_suffix) {
     var collections_docs, docs, i, remap_results, _i;
