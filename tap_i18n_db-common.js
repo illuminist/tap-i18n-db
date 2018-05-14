@@ -1,6 +1,8 @@
 var indexOf = [].indexOf;
 share = {}; 
 
+globals.supportedLanguages = Meteor.settings.public.supportedLanguages;
+
 i18nCollection = function(name, options = {}) {
   var collection, original_transform;
   // Set the transform option
@@ -63,7 +65,7 @@ const commonCollectionExtensions = function(obj) {
   };
 
   const isSupportedLanguage = function(lang, attempted_operation, callback) {
-    if (indexOf.call(Meteor.settings.supported_languages, lang) >= 0) {
+    if (indexOf.call(Meteor.settings.public.supportedLanguages, lang) >= 0) {
       return;
     }
     return throwError(new Meteor.Error(400, `Not supported language: ${lang}`), attempted_operation, callback);
@@ -73,7 +75,7 @@ const commonCollectionExtensions = function(obj) {
     // if no language_tag & isClient, try to get env lang
     if (Meteor.isClient) {
       if (language_tag == null) {
-        language_tag = Meteor.settings.currentLanguage;
+        language_tag = Meteor.settings.public.currentLanguage;
       }
     }
     if (language_tag != null) {

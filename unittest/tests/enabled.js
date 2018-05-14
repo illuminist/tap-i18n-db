@@ -1,4 +1,4 @@
-var general_tests, get_all_docs, get_basic_collections_docs, get_dialect_base_language_collections_docs, get_general_classed_collections, get_regular_base_language_collections_docs, idle_time, max_document_id, null_language_tests, once, stop_all_subscriptions, subscribe_complex_subscriptions, subscribe_simple_subscriptions, subscription_a, subscription_b, subscription_c, supported_languages, test_collections, translations_editing_tests_collection, validate_complex_subscriptions_documents, validate_simple_subscriptions_documents;
+var general_tests, get_all_docs, get_basic_collections_docs, get_dialect_base_language_collections_docs, get_general_classed_collections, get_regular_base_language_collections_docs, idle_time, max_document_id, null_language_tests, once, stop_all_subscriptions, subscribe_complex_subscriptions, subscribe_simple_subscriptions, subscription_a, subscription_b, subscription_c, supportedLanguages, test_collections, translations_editing_tests_collection, validate_complex_subscriptions_documents, validate_simple_subscriptions_documents;
 
 test_collections = share.test_collections;
 
@@ -20,8 +20,6 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid te
       b: 2,
       d: 4
     }
-  },function(err,id){
-    console.log(err,id);
   });
   return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
@@ -64,7 +62,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertTranslations - uns
   }, function(err, id) {
     test.isFalse(id);
     test.instanceOf(err, Meteor.Error);
-    test.equal(err.reason, "Not supported language: ru");
+    if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
     return onComplete();
   });
@@ -124,7 +122,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
   }, "ru", function(err, id) {
     test.isFalse(id);
     test.instanceOf(err, Meteor.Error);
-    test.equal(err.reason, "Not supported language: ru");
+    if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
     return onComplete();
   });
@@ -141,7 +139,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
   }, function(err, id) {
     test.isFalse(id);
     test.instanceOf(err, Meteor.Error);
-    test.equal(err.reason, "Missing language_tag");
+    if(err) test.equal(err.reason, "Missing language_tag");
     test.isNull(result);
     return onComplete();
   });
@@ -247,7 +245,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - uns
   }, function(err, id) {
     test.isFalse(id);
     test.instanceOf(err, Meteor.Error);
-    test.equal(err.reason, "Not supported language: ru");
+    if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
     return onComplete();
   });
@@ -361,7 +359,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - att
   return result = translations_editing_tests_collection.removeTranslations(_id, ["en"], function(err, affected_rows) {
     test.isFalse(affected_rows);
     test.instanceOf(err, Meteor.Error);
-    test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
+    if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
     test.isNull(result);
     return onComplete();
   });
@@ -456,7 +454,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - attemp
     return Meteor.setTimeout((function() {
       test.isFalse(affected_rows);
       test.instanceOf(err, Meteor.Error);
-      test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
+      if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
       return onComplete();
     }));
   });
@@ -495,7 +493,7 @@ if (Meteor.isServer) {
 
 if (Meteor.isClient) {
   document.title = "UnitTest: tap-i18n-db used in a tap-i18n enabled project";
-  supported_languages = Meteor.settings.supportedLanguages;
+  supportedLanguages = Meteor.settings.supportedLanguages;
   max_document_id = share.max_document_id;
   get_general_classed_collections = function(class_suffix) {
     var collections_docs, docs, i, remap_results, _i;
@@ -602,14 +600,14 @@ if (Meteor.isClient) {
   subscribe_complex_subscriptions = function() {
     var a_dfd, b_dfd, c_dfd, language, language_to_exclude_from_class_a_and_b, projection;
     stop_all_subscriptions();
-    language_to_exclude_from_class_a_and_b = supported_languages[(supported_languages.indexOf(Meteor.settings.currentLanguage) + 1) % supported_languages.length];
+    language_to_exclude_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(Meteor.settings.currentLanguage) + 1) % supportedLanguages.length];
     a_dfd = new $.Deferred();
     projection = {
       _id: 1,
       id: 1
     };
-    for (var i = 0; i < supported_languages.length; i++) {
-      language = supported_languages[i];
+    for (var i = 0; i < supportedLanguages.length; i++) {
+      language = supportedLanguages[i];
       if (language !== language_to_exclude_from_class_a_and_b) {
         projection["not_translated_to_" + language] = 1;
       }
@@ -666,8 +664,8 @@ if (Meteor.isClient) {
       _results.push(_.each(collection_type_documents, function(doc) {
         var expected_value, language_property_not_translated_to, property, should_translate_to, should_translate_to_dialect_of, value, _i, _len, _results1;
         _results1 = [];
-        for (var i = 0; i < supported_languages.length; i++) {
-          language_property_not_translated_to = supported_languages[i];
+        for (var i = 0; i < supportedLanguages.length; i++) {
+          language_property_not_translated_to = supportedLanguages[i];
           should_translate_to = current_language;
           if (should_translate_to === null) {
             should_translate_to = collection_base_language;
@@ -710,7 +708,7 @@ if (Meteor.isClient) {
       collection_type_documents = documents[collection_type];
       _results.push(_.each(collection_type_documents, function(doc) {
         var expected_value, field_excluded_from_doc, language_excluded_from_class_a_and_b, language_property_not_translated_to, property, should_translate_to, should_translate_to_dialect_of, value, _i, _len, _results1;
-        language_excluded_from_class_a_and_b = supported_languages[(supported_languages.indexOf(current_language) + 1) % supported_languages.length];
+        language_excluded_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(current_language) + 1) % supportedLanguages.length];
         field_excluded_from_doc = null;
         switch (doc.id % 3) {
           case 0:
@@ -723,8 +721,8 @@ if (Meteor.isClient) {
             field_excluded_from_doc = current_language;
         }
         _results1 = [];
-        for (_i = 0, _len = supported_languages.length; _i < _len; _i++) {
-          language_property_not_translated_to = supported_languages[_i];
+        for (_i = 0, _len = supportedLanguages.length; _i < _len; _i++) {
+          language_property_not_translated_to = supportedLanguages[_i];
           should_translate_to = current_language;
           if (should_translate_to === null) {
             should_translate_to = collection_base_language;
@@ -900,7 +898,7 @@ if (Meteor.isClient) {
   });
   Tinytest.addAsync('tap-i18n-db - reactivity test - simple subscription', function(test, onComplete) {
     var comp, documents, interval_handle, last_invalidation, subscriptions;
-    Meteor.settings.currentLanguage = supported_languages[0];
+    Meteor.settings.currentLanguage = supportedLanguages[0];
     subscriptions = subscribe_simple_subscriptions();
     last_invalidation = null;
     documents = null;
@@ -914,9 +912,9 @@ if (Meteor.isClient) {
         console.log("Testing simple subscriptions' reactivity: language=" + (Meteor.settings.currentLanguage));
         general_tests(test, subscriptions, documents);
         validate_simple_subscriptions_documents(test, subscriptions, documents);
-        lang_id = supported_languages.indexOf(Meteor.settings.currentLanguage);
-        if (lang_id + 1 < supported_languages.length) {
-          Meteor.settings.currentLanguage = supported_languages[lang_id + 1];
+        lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage);
+        if (lang_id + 1 < supportedLanguages.length) {
+          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
         } else {
           comp.stop();
           Meteor.clearInterval(interval_handle);
@@ -929,7 +927,7 @@ if (Meteor.isClient) {
     Tinytest.addAsync('tap-i18n-db - reactivity test - complex subscription', function(test, onComplete) {
       var comp, documents, fields, fields_to_exclude, interval_handle, last_invalidation, local_session, subscriptions;
       stop_all_subscriptions();
-      Meteor.settings.currentLanguage = supported_languages[0];
+      Meteor.settings.currentLanguage = supportedLanguages[0];
       fields_to_exclude = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
       local_session = new ReactiveDict();
       local_session.set("field_to_exclude", fields_to_exclude[0]);
@@ -1000,8 +998,8 @@ if (Meteor.isClient) {
         } else if (local_session.get("projection_type") === 1 && ((projection_id = fields_to_exclude.indexOf(local_session.get("field_to_exclude"))) + 1) < fields_to_exclude.length) {
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[projection_id + 1]);
-        } else if ((lang_id = supported_languages.indexOf(Meteor.settings.currentLanguage)) + 1 < supported_languages.length) {
-          Meteor.settings.currentLanguage = supported_languages[lang_id + 1];
+        } else if ((lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage)) + 1 < supportedLanguages.length) {
+          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[0]);
         } else {
@@ -1182,7 +1180,7 @@ if (Meteor.isClient) {
       return Meteor.setTimeout((function() {
         test.isFalse(affected_rows);
         test.instanceOf(err, Meteor.Error);
-        test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
+        if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
         return onComplete();
       }), 1000);
     });
