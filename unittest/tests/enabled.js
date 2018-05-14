@@ -880,13 +880,13 @@ if (Meteor.isClient) {
   Tinytest.addAsync('tap-i18n-db - subscribing with a not-supported language fails', function(test, onComplete) {
     var dfd;
     dfd = new $.Deferred();
-    Meteor.subscribe("class_a", "gg-GG", {
+    Meteor.i18nSubscribe("class_a", "gg-GG", {
       onReady: function() {
         return dfd.reject();
       },
       onError: function(e) {
-        test.equal(400, e.error);
-        test.equal("Not supported language", e.reason);
+        test.equal(e.error, 400);
+        test.equal(e.reason, "Not supported language");
         return dfd.resolve(e);
       }
     });

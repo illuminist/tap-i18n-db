@@ -72,12 +72,6 @@ const commonCollectionExtensions = function(obj) {
   };
 
   const getLanguageOrEnvLanguage = function(language_tag, attempted_operation, callback) {
-    // if no language_tag & isClient, try to get env lang
-    if (Meteor.isClient) {
-      if (language_tag == null) {
-        language_tag = Meteor.settings.public.currentLanguage;
-      }
-    }
     if (language_tag != null) {
       return language_tag;
     }
