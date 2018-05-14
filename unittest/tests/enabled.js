@@ -9,8 +9,7 @@ idle_time = 2000;
 once = share.once;
 
 Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid test', function(test) {
-  var _id;
-  return test.equal(translations_editing_tests_collection.findOne(_id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 5
   }, {
@@ -21,7 +20,8 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid te
       b: 2,
       d: 4
     }
-  }), {
+  })
+  return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
     a: 1,
@@ -37,11 +37,11 @@ Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid te
 });
 
 Tinytest.add('tap-i18n-db - translations editing - insertTranslations - no translations', function(test) {
-  var _id;
-  return test.equal(translations_editing_tests_collection.findOne(_id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
-  }), {
+  });
+  return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
     a: 1,
@@ -89,14 +89,14 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
 });
 
 Tinytest.add('tap-i18n-db - translations editing - insertLanguage - language: not collection\'s base language', function(test) {
-  var _id;
-  return test.equal(translations_editing_tests_collection.findOne(_id = translations_editing_tests_collection.insertLanguage({
+  var _id = translations_editing_tests_collection.insertLanguage({
     a: 1,
     b: 5
   }, {
     b: 2,
     d: 4
-  }, "aa"), {
+  }, "aa");
+  return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
     a: 1,
@@ -146,8 +146,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - valid update', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 5,
     b: 6
   }, {
@@ -160,7 +159,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - val
       m: 2
     }
   });
-  result = translations_editing_tests_collection.updateTranslations(_id, {
+  var result = translations_editing_tests_collection.updateTranslations(_id, {
     en: {
       a: 1
     },
@@ -206,15 +205,14 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - val
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - empty update', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1
   }, {
     aa: {
       x: 1
     }
   });
-  result = translations_editing_tests_collection.updateTranslations(_id);
+  var result = translations_editing_tests_collection.updateTranslations(_id);
   test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
@@ -231,14 +229,14 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - emp
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - unsupported lang', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1
   }, {
     aa: {
       x: 1
     }
   });
+  var result;
   return result = translations_editing_tests_collection.updateTranslations(_id, {
     ru: {
       c: 3
@@ -253,8 +251,8 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - uns
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - translate - valid update', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 5,
     b: 2
   }, {
@@ -306,8 +304,8 @@ Tinytest.addAsync('tap-i18n-db - translations editing - translate - valid update
 });
 
 Tinytest.add('tap-i18n-db - translations editing - remove translation - valid remove', function(test) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
   }, {
@@ -338,8 +336,8 @@ Tinytest.add('tap-i18n-db - translations editing - remove translation - valid re
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - attempt to remove base language', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
   }, {
@@ -362,8 +360,8 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - att
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - fields argument is not an array', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
   }, {
@@ -385,8 +383,8 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - fie
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - remove language - valid remove', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2,
     c: 3
@@ -427,8 +425,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - valid 
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - remove language - attempt to remove base language', function(test, onComplete) {
-  var _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2,
     c: 3
@@ -453,8 +450,8 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - attemp
 });
 
 Tinytest.addAsync('tap-i18n-db - translations editing - remove language - fields argument is not an array', function(test, onComplete) {
-  var result, _id;
-  _id = translations_editing_tests_collection.insertTranslations({
+  var result;
+  var _id = translations_editing_tests_collection.insertTranslations({
     a: 1,
     b: 2
   }, {
@@ -476,10 +473,10 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - fields
 });
 
 if (Meteor.isServer) {
-  Tinytest.add('tap-i18n-db - TAPi18n.i18nFind works only from TAPi18n.publish', function(test) {
+  Tinytest.add('tap-i18n-db - i18nCollection.i18nFind works only from Meteor.i18nPublish', function(test) {
     return test.throws((function() {
       return test_collections.a.i18nFind();
-    }), "TAPi18n.i18nFind should be called only from TAPi18n.publish functions");
+    }), "i18nCollection.i18nFind should be called only from Meteor.i18nPublish functions");
   });
 }
 
@@ -590,7 +587,7 @@ if (Meteor.isClient) {
     return [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
   };
   subscribe_complex_subscriptions = function() {
-    var a_dfd, b_dfd, c_dfd, language, language_to_exclude_from_class_a_and_b, projection, _i, _len;
+    var a_dfd, b_dfd, c_dfd, language, language_to_exclude_from_class_a_and_b, projection;
     stop_all_subscriptions();
     language_to_exclude_from_class_a_and_b = supported_languages[(supported_languages.indexOf(Meteor.settings.currentLanguage) + 1) % supported_languages.length];
     a_dfd = new $.Deferred();
@@ -598,8 +595,8 @@ if (Meteor.isClient) {
       _id: 1,
       id: 1
     };
-    for (_i = 0, _len = supported_languages.length; _i < _len; _i++) {
-      language = supported_languages[_i];
+    for (var i = 0; i < supported_languages.length; i++) {
+      language = supported_languages[i];
       if (language !== language_to_exclude_from_class_a_and_b) {
         projection["not_translated_to_" + language] = 1;
       }
@@ -656,8 +653,8 @@ if (Meteor.isClient) {
       _results.push(_.each(collection_type_documents, function(doc) {
         var expected_value, language_property_not_translated_to, property, should_translate_to, should_translate_to_dialect_of, value, _i, _len, _results1;
         _results1 = [];
-        for (_i = 0, _len = supported_languages.length; _i < _len; _i++) {
-          language_property_not_translated_to = supported_languages[_i];
+        for (var i = 0; i < supported_languages.length; i++) {
+          language_property_not_translated_to = supported_languages[i];
           should_translate_to = current_language;
           if (should_translate_to === null) {
             should_translate_to = collection_base_language;
