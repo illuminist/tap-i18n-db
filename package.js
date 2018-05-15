@@ -8,7 +8,7 @@ Package.describe({
 Package.on_use(function (api) {
   api.versionsFrom('METEOR@1.6.1');
 
-  api.use(["underscore", "meteor", "jquery", "reactive-dict"], ['server', 'client']);
+  api.use(["underscore", "deps", "meteor", "jquery", "reactive-dict"], ['server', 'client']);
 
   api.use("autopublish", ['server', 'client'], {weak: true})
 

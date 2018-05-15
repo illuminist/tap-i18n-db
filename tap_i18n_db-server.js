@@ -14,14 +14,19 @@ share.i18nCollectionExtensions = function(obj) {
     }
     var dialect_of = share.helpers.dialectOf(current_language);
     var collection_base_language = this._base_language;
-    var supported_languages = Meteor.settings.supported_languages;
+    var supported_languages = Meteor.settings.public.supportedLanguages;
     if ((current_language != null) && !(indexOf.call(supported_languages, current_language) >= 0)) {
       throw new Meteor.Error(400, "Not supported language");
     }
     if (options == null) {
       options = {};
     }
-    const original_fields = options.fields || {};
+    var original_fields = options.fields || {};
+    if(!_.isUndefined(original_fields) && !_.isObject(original_fields)){
+      var mappedField = original_fields;
+      original_fields = {};
+      original_fields[mappedField] = 1; 
+    }
     var i18n_fields = _.extend({}, original_fields);
     if (!_.isEmpty(i18n_fields)) {
       // determine the projection kind

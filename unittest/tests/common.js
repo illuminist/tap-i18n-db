@@ -81,41 +81,37 @@ if (Meteor.isClient) {
 }
 
 init_collections = function() {
-  var base_language, collection, collection_class, collection_name, doc, i, language_tag, not_translated_to, properties_to_translate, property, set_on, value, _i, _results;
-  for (collection in test_collections) {
+  for (var collection in test_collections) {
     test_collections[collection].remove({});
   }
-  properties_to_translate = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
-  _results = [];
-  for (i = _i = 0; 0 <= max_document_id ? _i < max_document_id : _i > max_document_id; i = 0 <= max_document_id ? ++_i : --_i) {
+  var properties_to_translate = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
+  var _results = [];
+  for (var i = 0; i < max_document_id; i++) {
     _results.push((function() {
-      var _j, _k, _l, _len, _len1, _len2, _results1;
-      _results1 = [];
-      for (collection_name in test_collections) {
-        collection = test_collections[collection_name];
-        base_language = collection_name.replace(/(.*_|.*)/, "") || "en";
-        collection_class = collection_name.replace(/_.*/, "");
+      var _results1 = [];
+      _.each(_.keys(test_collections),(collection_name)=> {
+        var collection = test_collections[collection_name];
+        var base_language = collection_name.replace(/(.*_|.*)/, "") || "en";
+        var collection_class = collection_name.replace(/_.*/, "");
         if (i % 3 !== collection_classes_map[collection_class]) {
-          continue;
+          return;
         }
-        doc = {
+        var doc = {
           _id: "" + (share.lpad(i, 4)),
           id: i,
           i18n: {}
         };
-        for (_j = 0, _len = languages.length; _j < _len; _j++) {
-          language_tag = languages[_j];
+        _.each(languages,(language_tag) => {
           if (language_tag !== base_language) {
             doc.i18n[language_tag] = {};
           }
-        }
-        for (_k = 0, _len1 = languages.length; _k < _len1; _k++) {
-          language_tag = languages[_k];
-          for (_l = 0, _len2 = properties_to_translate.length; _l < _len2; _l++) {
-            property = properties_to_translate[_l];
-            not_translated_to = property.replace("not_translated_to_", "");
-            value = property + "-" + language_tag + "-" + i;
+        });
+        _.each(languages,(language_tag) => {
+          _.each(properties_to_translate,(property) => {
+            var not_translated_to = property.replace("not_translated_to_", "");
+            var value = property + "-" + language_tag + "-" + i;
             if (language_tag !== not_translated_to) {
+              var set_on;
               if (language_tag === base_language) {
                 set_on = doc;
               } else {
@@ -123,10 +119,10 @@ init_collections = function() {
               }
               set_on[property] = value;
             }
-          }
-        }
+          });
+        });
         _results1.push(collection.insert(doc));
-      }
+      });
       return _results1;
     })());
   }
@@ -161,8 +157,8 @@ if (Meteor.isServer) {
       return cursors;
     });
   };
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    _class = _ref[_i];
+  for (var i = 0; i < _ref.length; i++) {
+    _class = _ref[i];
     _fn(_class);
   }
 }

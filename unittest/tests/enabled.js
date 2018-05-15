@@ -1,12 +1,8 @@
-var general_tests, get_all_docs, get_basic_collections_docs, get_dialect_base_language_collections_docs, get_general_classed_collections, get_regular_base_language_collections_docs, idle_time, max_document_id, null_language_tests, once, stop_all_subscriptions, subscribe_complex_subscriptions, subscribe_simple_subscriptions, subscription_a, subscription_b, subscription_c, supportedLanguages, test_collections, translations_editing_tests_collection, validate_complex_subscriptions_documents, validate_simple_subscriptions_documents;
+var test_collections = share.test_collections;
 
-test_collections = share.test_collections;
+var translations_editing_tests_collection = share.translations_editing_tests_collection;
 
-translations_editing_tests_collection = share.translations_editing_tests_collection;
-
-idle_time = 2000;
-
-once = share.once;
+var idle_time = 2000;
 
 Tinytest.add('tap-i18n-db - translations editing - insertTranslations - valid test', function(test) {
   var _id = translations_editing_tests_collection.insertTranslations({
@@ -404,6 +400,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - valid 
       m: 2
     }
   });
+
   result = translations_editing_tests_collection.removeLanguage(_id, ["a", "c"], "en");
   test.equal(result, 1, "Correct number of affected documents");
   result = translations_editing_tests_collection.removeLanguage(_id, ["x"], "aa", {}, function(err, affected_rows) {
@@ -493,20 +490,19 @@ if (Meteor.isServer) {
 
 if (Meteor.isClient) {
   document.title = "UnitTest: tap-i18n-db used in a tap-i18n enabled project";
-  supportedLanguages = Meteor.settings.supportedLanguages;
-  max_document_id = share.max_document_id;
-  get_general_classed_collections = function(class_suffix) {
-    var collections_docs, docs, i, remap_results, _i;
+  var supportedLanguages = Meteor.settings.public.supportedLanguages;
+  var max_document_id = share.max_document_id;
+  const get_general_classed_collections = function(class_suffix) {
     if (class_suffix == null) {
       class_suffix = "";
     }
-    remap_results = function(results) {
+    var remap_results = function(results) {
       return _.reduce(_.values(results), (function(a, b) {
         a[b.id] = b;
         return a;
       }), {});
     };
-    collections_docs = [
+    var collections_docs = [
       remap_results(test_collections["a" + class_suffix].find({}, {
         sort: {
           "id": 1
@@ -521,8 +517,8 @@ if (Meteor.isClient) {
         }
       }).fetch())
     ];
-    docs = [];
-    for (i = _i = 0; 0 <= max_document_id ? _i < max_document_id : _i > max_document_id; i = 0 <= max_document_id ? ++_i : --_i) {
+    var docs = [];
+    for (var i = 0; i < max_document_id; i++) {
       if (i in collections_docs[i % 3]) {
         if (collections_docs[i % 3][i] != null) {
           docs.push(collections_docs[i % 3][i]);
@@ -531,21 +527,20 @@ if (Meteor.isClient) {
     }
     return docs;
   };
-  get_basic_collections_docs = function() {
+  const get_basic_collections_docs = function() {
     return get_general_classed_collections();
   };
-  get_regular_base_language_collections_docs = function() {
+  const get_regular_base_language_collections_docs = function() {
     return get_general_classed_collections("_aa");
   };
-  get_dialect_base_language_collections_docs = function() {
+  const get_dialect_base_language_collections_docs = function() {
     return get_general_classed_collections("_aa-AA");
   };
-  get_all_docs = function() {
-    var all, basic, dialect, regular_lang;
-    basic = get_basic_collections_docs();
-    regular_lang = get_regular_base_language_collections_docs();
-    dialect = get_dialect_base_language_collections_docs();
-    all = [].concat(basic, regular_lang, dialect);
+  const get_all_docs = function() {
+    var basic = get_basic_collections_docs();
+    var regular_lang = get_regular_base_language_collections_docs();
+    var dialect = get_dialect_base_language_collections_docs();
+    var all = [].concat(basic, regular_lang, dialect);
     return {
       basic: basic,
       regular_lang: regular_lang,
@@ -553,22 +548,20 @@ if (Meteor.isClient) {
       all: all
     };
   };
-  subscription_a = subscription_b = subscription_c = null;
-  stop_all_subscriptions = function() {
-    var i, _i, _len, _ref;
-    _ref = [subscription_a, subscription_b, subscription_c];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      i = _ref[_i];
-      if (i != null) {
-        i.stop();
-      }
-    }
+  var subscription_a = null;
+  var subscription_b = null;
+  var subscription_c = null;
+  const stop_all_subscriptions = function() {
+    _.each(
+      _.filter(
+        [subscription_a, subscription_b, subscription_c], (o)=>!_.isNull(o)
+      ), (o)=>o.stop()
+    );
     return Deps.flush();
   };
-  subscribe_simple_subscriptions = function() {
-    var a_dfd, b_dfd, c_dfd;
+  const subscribe_simple_subscriptions = function() {
     stop_all_subscriptions();
-    a_dfd = new $.Deferred();
+    var a_dfd = new $.Deferred();
     subscription_a = Meteor.i18nSubscribe("class_a", {
       onReady: (function() {
         return a_dfd.resolve();
@@ -577,7 +570,7 @@ if (Meteor.isClient) {
         return a_dfd.reject();
       })
     });
-    b_dfd = new $.Deferred();
+    var b_dfd = new $.Deferred();
     subscription_b = Meteor.i18nSubscribe("class_b", {
       onReady: (function() {
         return b_dfd.resolve();
@@ -586,7 +579,7 @@ if (Meteor.isClient) {
         return b_dfd.reject();
       })
     });
-    c_dfd = new $.Deferred();
+    var c_dfd = new $.Deferred();
     subscription_c = Meteor.i18nSubscribe("class_c", {
       onReady: (function() {
         return c_dfd.resolve();
@@ -597,21 +590,17 @@ if (Meteor.isClient) {
     });
     return [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
   };
-  subscribe_complex_subscriptions = function() {
-    var a_dfd, b_dfd, c_dfd, language, language_to_exclude_from_class_a_and_b, projection;
+  const subscribe_complex_subscriptions = function() {
     stop_all_subscriptions();
-    language_to_exclude_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(Meteor.settings.currentLanguage) + 1) % supportedLanguages.length];
-    a_dfd = new $.Deferred();
-    projection = {
+    var language_to_exclude_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(Meteor.settings.public.currentLanguage) + 1) % supportedLanguages.length];
+    var a_dfd = new $.Deferred();
+    var projection = {
       _id: 1,
       id: 1
     };
-    for (var i = 0; i < supportedLanguages.length; i++) {
-      language = supportedLanguages[i];
-      if (language !== language_to_exclude_from_class_a_and_b) {
-        projection["not_translated_to_" + language] = 1;
-      }
-    }
+    _.each(_.filter(supportedLanguages,(o)=>o!==language_to_exclude_from_class_a_and_b),
+      (language)=> projection["not_translated_to_" + language] = 1
+    );
     subscription_a = Meteor.i18nSubscribe("class_a", projection, {
       onReady: (function() {
         return a_dfd.resolve();
@@ -620,10 +609,8 @@ if (Meteor.isClient) {
         return a_dfd.reject();
       })
     });
-    b_dfd = new $.Deferred();
-    projection = {
-      _id: 1
-    };
+    var b_dfd = new $.Deferred();
+    projection = {};
     projection["not_translated_to_" + language_to_exclude_from_class_a_and_b] = 0;
     subscription_b = Meteor.i18nSubscribe("class_b", projection, {
       onReady: (function() {
@@ -633,11 +620,9 @@ if (Meteor.isClient) {
         return b_dfd.reject();
       })
     });
-    c_dfd = new $.Deferred();
-    projection = {
-      _id: 1
-    };
-    projection["not_translated_to_" + (Meteor.settings.currentLanguage)] = 0;
+    var c_dfd = new $.Deferred();
+    projection = {};
+    projection["not_translated_to_" + (Meteor.settings.public.currentLanguage)] = 0;
     subscription_c = Meteor.i18nSubscribe("class_c", projection, {
       onReady: (function() {
         return c_dfd.resolve();
@@ -648,36 +633,34 @@ if (Meteor.isClient) {
     });
     return [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
   };
-  validate_simple_subscriptions_documents = function(test, subscriptions, documents) {
-    var base_language_by_collection_type, collection_base_language, collection_type, collection_type_documents, current_language, i18n_supported, _results;
-    current_language = Meteor.settings.currentLanguage;
-    i18n_supported = current_language != null;
-    base_language_by_collection_type = {
+  const validate_simple_subscriptions_documents = function(test, subscriptions, documents) {
+    var current_language = Meteor.settings.public.currentLanguage;
+    var i18n_supported = !_.isNull(current_language);
+    var base_language_by_collection_type = {
       basic: test_collections.a._base_language,
       regular_lang: test_collections.a_aa._base_language,
       dialect: test_collections["a_aa-AA"]._base_language
     };
-    _results = [];
-    for (collection_type in base_language_by_collection_type) {
-      collection_base_language = base_language_by_collection_type[collection_type];
-      collection_type_documents = documents[collection_type];
+    var _results = [];
+    for (var collection_type in base_language_by_collection_type) {
+      var collection_base_language = base_language_by_collection_type[collection_type];
+      var collection_type_documents = documents[collection_type];
       _results.push(_.each(collection_type_documents, function(doc) {
-        var expected_value, language_property_not_translated_to, property, should_translate_to, should_translate_to_dialect_of, value, _i, _len, _results1;
-        _results1 = [];
-        for (var i = 0; i < supportedLanguages.length; i++) {
-          language_property_not_translated_to = supportedLanguages[i];
-          should_translate_to = current_language;
-          if (should_translate_to === null) {
+        var expected_value, value;
+        var _results1 = [];
+        _.each(supportedLanguages,(language_property_not_translated_to)=>{
+          var should_translate_to = current_language;
+          if (_.isNull(should_translate_to)) {
             should_translate_to = collection_base_language;
           }
-          should_translate_to_dialect_of = share.dialectOf(should_translate_to);
-          property = "not_translated_to_" + language_property_not_translated_to;
+          var should_translate_to_dialect_of = share.dialectOf(should_translate_to);
+          var property = "not_translated_to_" + language_property_not_translated_to;
           value = doc[property];
           if (should_translate_to !== language_property_not_translated_to) {
             expected_value = property + "-" + should_translate_to + "-" + doc.id;
           } else {
             if (i18n_supported) {
-              if (should_translate_to_dialect_of != null) {
+              if (!_.isNull(should_translate_to_dialect_of)) {
                 expected_value = property + "-" + should_translate_to_dialect_of + "-" + doc.id;
               } else if (collection_base_language !== should_translate_to) {
                 expected_value = property + "-" + collection_base_language + "-" + doc.id;
@@ -689,27 +672,26 @@ if (Meteor.isClient) {
             }
           }
           _results1.push(test.equal(expected_value, value));
-        }
+        });
         return _results1;
       }));
     }
     return _results;
   };
-  validate_complex_subscriptions_documents = function(test, subscriptions, documents) {
-    var base_language_by_collection_type, collection_base_language, collection_type, collection_type_documents, current_language, i18n_supported, _results;
-    current_language = Meteor.settings.currentLanguage;
-    i18n_supported = current_language != null;
-    base_language_by_collection_type = {
+  const validate_complex_subscriptions_documents = function(test, subscriptions, documents) {
+    var current_language = Meteor.settings.public.currentLanguage;
+    var i18n_supported = current_language != null;
+    var base_language_by_collection_type = {
       basic: test_collections.a._base_language
     };
-    _results = [];
-    for (collection_type in base_language_by_collection_type) {
-      collection_base_language = base_language_by_collection_type[collection_type];
-      collection_type_documents = documents[collection_type];
+    var _results = [];
+    for (var collection_type in base_language_by_collection_type) {
+      var collection_base_language = base_language_by_collection_type[collection_type];
+      var collection_type_documents = documents[collection_type];
       _results.push(_.each(collection_type_documents, function(doc) {
-        var expected_value, field_excluded_from_doc, language_excluded_from_class_a_and_b, language_property_not_translated_to, property, should_translate_to, should_translate_to_dialect_of, value, _i, _len, _results1;
-        language_excluded_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(current_language) + 1) % supportedLanguages.length];
-        field_excluded_from_doc = null;
+        var expected_value, value;
+        var language_excluded_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(current_language) + 1) % supportedLanguages.length];
+        var field_excluded_from_doc = null;
         switch (doc.id % 3) {
           case 0:
             field_excluded_from_doc = language_excluded_from_class_a_and_b;
@@ -720,15 +702,14 @@ if (Meteor.isClient) {
           case 2:
             field_excluded_from_doc = current_language;
         }
-        _results1 = [];
-        for (_i = 0, _len = supportedLanguages.length; _i < _len; _i++) {
-          language_property_not_translated_to = supportedLanguages[_i];
-          should_translate_to = current_language;
+        var _results1 = [];
+        _.each(supportedLanguages,(language_property_not_translated_to)=>{
+          var should_translate_to = current_language;
           if (should_translate_to === null) {
             should_translate_to = collection_base_language;
           }
-          should_translate_to_dialect_of = share.dialectOf(should_translate_to);
-          property = "not_translated_to_" + language_property_not_translated_to;
+          var should_translate_to_dialect_of = share.dialectOf(should_translate_to);
+          var property = "not_translated_to_" + language_property_not_translated_to;
           value = doc[property];
           if (language_property_not_translated_to === field_excluded_from_doc) {
             expected_value = void 0;
@@ -748,13 +729,13 @@ if (Meteor.isClient) {
             }
           }
           _results1.push(test.equal(expected_value, value, "col_type=" + collection_type + ", property=" + property));
-        }
+        });
         return _results1;
       }));
     }
     return _results;
   };
-  general_tests = function(test, subscriptions, documents) {
+  const general_tests = function(test, subscriptions, documents) {
     test.equal(documents.all.length, max_document_id * 3, "Expected documents count in collections");
     return test.isTrue(_.reduce(_.map(documents.all, function(doc) {
       return doc.i18n == null;
@@ -762,13 +743,11 @@ if (Meteor.isClient) {
       return memo && current;
     }), true), "The subdocument i18n is not part of the documents");
   };
-  null_language_tests = function(test, subscriptions, documents) {};
+  const null_language_tests = function(test, subscriptions, documents) {};
   Tinytest.addAsync('tap-i18n-db - language: null; simple pub/sub - general tests', function(test, onComplete) {
-    var subscriptions, test_case;
-    subscriptions = subscribe_simple_subscriptions();
-    test_case = once(function() {
-      var documents;
-      documents = get_all_docs();
+    const subscriptions = subscribe_simple_subscriptions();
+    const test_case = _.once(function() {
+      var documents = get_all_docs();
       general_tests(test, subscriptions, documents);
       null_language_tests(test, subscriptions, documents);
       validate_simple_subscriptions_documents(test, subscriptions, documents);
@@ -782,11 +761,9 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: null; complex pub/sub - general tests', function(test, onComplete) {
-      var subscriptions, test_case;
-      subscriptions = subscribe_complex_subscriptions();
-      test_case = once(function() {
-        var documents;
-        documents = get_all_docs();
+      const subscriptions = subscribe_complex_subscriptions();
+      const test_case = _.once(function() {
+        var documents = get_all_docs();
         general_tests(test, subscriptions, documents);
         null_language_tests(test, subscriptions, documents);
         validate_complex_subscriptions_documents(test, subscriptions, documents);
@@ -800,12 +777,10 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: en; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "en";
-    var subscriptions;
-    subscriptions = subscribe_simple_subscriptions();
+    Meteor.settings.public.currentLanguage = "en";
+    const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
-      var documents;
-      documents = get_all_docs();
+      const documents= get_all_docs();
       general_tests(test, subscriptions, documents);
       validate_simple_subscriptions_documents(test, subscriptions, documents);
       return onComplete();
@@ -813,12 +788,10 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: en; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.currentLanguage = "en";
-      var subscriptions;
-      subscriptions = subscribe_complex_subscriptions();
+      Meteor.settings.public.currentLanguage = "en";
+      const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
-        var documents;
-        documents = get_all_docs();
+        const documents= get_all_docs();
         general_tests(test, subscriptions, documents);
         validate_complex_subscriptions_documents(test, subscriptions, documents);
         return onComplete();
@@ -826,12 +799,10 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: aa; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-    var subscriptions;
-    subscriptions = subscribe_simple_subscriptions();
+    Meteor.settings.public.currentLanguage = "aa";
+    const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
-      var documents;
-      documents = get_all_docs();
+      const documents= get_all_docs();
       general_tests(test, subscriptions, documents);
       validate_simple_subscriptions_documents(test, subscriptions, documents);
       return onComplete();
@@ -839,12 +810,10 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: aa; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.currentLanguage = "aa";
-      var subscriptions;
-      subscriptions = subscribe_complex_subscriptions();
+      Meteor.settings.public.currentLanguage = "aa";
+      const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
-        var documents;
-        documents = get_all_docs();
+        const documents= get_all_docs();
         general_tests(test, subscriptions, documents);
         validate_complex_subscriptions_documents(test, subscriptions, documents);
         return onComplete();
@@ -852,12 +821,10 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: aa-AA; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa-AA";
-    var subscriptions;
-    subscriptions = subscribe_simple_subscriptions();
+    Meteor.settings.public.currentLanguage = "aa-AA";
+    const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
-      var documents;
-      documents = get_all_docs();
+      const documents= get_all_docs();
       general_tests(test, subscriptions, documents);
       validate_simple_subscriptions_documents(test, subscriptions, documents);
       return onComplete();
@@ -865,12 +832,10 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: aa-AA; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.currentLanguage = "aa-AA";
-      var subscriptions;
-      subscriptions = subscribe_complex_subscriptions();
+      Meteor.settings.public.currentLanguage = "aa-AA";
+      const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
-        var documents;
-        documents = get_all_docs();
+        const documents= get_all_docs();
         general_tests(test, subscriptions, documents);
         validate_complex_subscriptions_documents(test, subscriptions, documents);
         return onComplete();
@@ -878,8 +843,7 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - subscribing with a not-supported language fails', function(test, onComplete) {
-    var dfd;
-    dfd = new $.Deferred();
+    var dfd = new $.Deferred();
     Meteor.i18nSubscribe("class_a", "gg-GG", {
       onReady: function() {
         return dfd.reject();
@@ -897,24 +861,23 @@ if (Meteor.isClient) {
     });
   });
   Tinytest.addAsync('tap-i18n-db - reactivity test - simple subscription', function(test, onComplete) {
-    var comp, documents, interval_handle, last_invalidation, subscriptions;
-    Meteor.settings.currentLanguage = supportedLanguages[0];
-    subscriptions = subscribe_simple_subscriptions();
-    last_invalidation = null;
-    documents = null;
-    comp = Deps.autorun(function() {
+    Meteor.settings.public.currentLanguage = supportedLanguages[0];
+    const subscriptions = subscribe_simple_subscriptions();
+    var last_invalidation = null;
+    var documents = null;
+    const comp = Deps.autorun(function() {
       documents = get_all_docs();
       return last_invalidation = share.now();
     });
+    var interval_handle;
     return interval_handle = Meteor.setInterval((function() {
-      var lang_id;
       if (last_invalidation + idle_time < share.now()) {
-        console.log("Testing simple subscriptions' reactivity: language=" + (Meteor.settings.currentLanguage));
+        console.log("Testing simple subscriptions' reactivity: language=" + (Meteor.settings.public.currentLanguage));
         general_tests(test, subscriptions, documents);
         validate_simple_subscriptions_documents(test, subscriptions, documents);
-        lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage);
+        var lang_id = supportedLanguages.indexOf(Meteor.settings.public.currentLanguage);
         if (lang_id + 1 < supportedLanguages.length) {
-          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
+          Meteor.settings.public.currentLanguage = supportedLanguages[lang_id + 1];
         } else {
           comp.stop();
           Meteor.clearInterval(interval_handle);
@@ -925,31 +888,28 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - reactivity test - complex subscription', function(test, onComplete) {
-      var comp, documents, fields, fields_to_exclude, interval_handle, last_invalidation, local_session, subscriptions;
       stop_all_subscriptions();
-      Meteor.settings.currentLanguage = supportedLanguages[0];
-      fields_to_exclude = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
-      local_session = new ReactiveDict();
+      Meteor.settings.public.currentLanguage = supportedLanguages[0];
+      var fields_to_exclude = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
+      var local_session = new ReactiveDict();
       local_session.set("field_to_exclude", fields_to_exclude[0]);
       local_session.set("projection_type", 0);
-      fields = null;
-      subscriptions = null;
+      var fields = null;
+      var subscriptions = null;
       Deps.autorun(function() {
-        var a_dfd, b_dfd, c_dfd, field, field_to_exclude, _i, _len;
-        field_to_exclude = local_session.get("field_to_exclude");
+        var field_to_exclude = local_session.get("field_to_exclude");
         fields = {};
         if (local_session.get("projection_type") === 0) {
           fields[field_to_exclude] = 0;
         } else {
-          for (_i = 0, _len = fields_to_exclude.length; _i < _len; _i++) {
-            field = fields_to_exclude[_i];
+          _.each(fields_to_exclude,(field)=>{
             if (field !== field_to_exclude) {
               fields[field] = 1;
             }
-          }
+          });
           fields["id"] = 1;
         }
-        a_dfd = new $.Deferred();
+        var a_dfd = new $.Deferred();
         subscription_a = Meteor.i18nSubscribe("class_a", fields, {
           onReady: (function() {
             return a_dfd.resolve();
@@ -958,7 +918,7 @@ if (Meteor.isClient) {
             return a_dfd.reject();
           })
         });
-        b_dfd = new $.Deferred();
+        var b_dfd = new $.Deferred();
         subscription_b = Meteor.i18nSubscribe("class_b", fields, {
           onReady: (function() {
             return b_dfd.resolve();
@@ -967,7 +927,7 @@ if (Meteor.isClient) {
             return b_dfd.reject();
           })
         });
-        c_dfd = new $.Deferred();
+        var c_dfd = new $.Deferred();
         subscription_c = Meteor.i18nSubscribe("class_c", fields, {
           onReady: (function() {
             return c_dfd.resolve();
@@ -978,16 +938,17 @@ if (Meteor.isClient) {
         });
         return subscriptions = [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
       });
-      last_invalidation = null;
-      documents = null;
-      comp = Deps.autorun(function() {
+      var interval_handle;
+      var last_invalidation = null;
+      var documents = null;
+      var comp = Deps.autorun(function() {
         documents = get_all_docs();
         return last_invalidation = share.now();
       });
       return interval_handle = Meteor.setInterval((function() {
         var lang_id, projection_id;
         if (last_invalidation + idle_time < share.now()) {
-          console.log("Testing complex subscriptions' reactivity: language=" + (Meteor.settings.currentLanguage) + "; field_to_exclude=" + (local_session.get("field_to_exclude")) + "; projection_type=" + (local_session.get("projection_type") ? "inclusive" : "exclusive") + "; projection=" + (EJSON.stringify(fields)));
+          console.log("Testing complex subscriptions' reactivity: language=" + (Meteor.settings.public.currentLanguage) + "; field_to_exclude=" + (local_session.get("field_to_exclude")) + "; projection_type=" + (local_session.get("projection_type") ? "inclusive" : "exclusive") + "; projection=" + (EJSON.stringify(fields)));
         }
         general_tests(test, subscriptions, documents);
         documents.all.forEach(function(doc) {
@@ -998,8 +959,8 @@ if (Meteor.isClient) {
         } else if (local_session.get("projection_type") === 1 && ((projection_id = fields_to_exclude.indexOf(local_session.get("field_to_exclude"))) + 1) < fields_to_exclude.length) {
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[projection_id + 1]);
-        } else if ((lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage)) + 1 < supportedLanguages.length) {
-          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
+        } else if ((lang_id = supportedLanguages.indexOf(Meteor.settings.public.currentLanguage)) + 1 < supportedLanguages.length) {
+          Meteor.settings.public.currentLanguage = supportedLanguages[lang_id + 1];
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[0]);
         } else {
@@ -1013,16 +974,16 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isClient) {
-  Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-      var _id;
+  Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
+    Meteor.settings.public.currentLanguage = "aa";
+    var _id;
     return test.equal(translations_editing_tests_collection.findOne(_id = translations_editing_tests_collection.insertLanguage({
       a: 1,
       b: 5
     }, {
       b: 2,
       d: 4
-    }, (function() {
+    }, (function(err, id) {
       return onComplete();
     })), {
       transform: null
@@ -1040,10 +1001,10 @@ if (Meteor.isClient) {
       _id: _id
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - translate - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-    var result, _id;
-    _id = translations_editing_tests_collection.insertTranslations({
+  Tinytest.addAsync('tap-i18n-db - translations editing - translate - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
+    Meteor.settings.public.currentLanguage = "aa";
+    var result;
+    var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
       b: 2
     }, {
@@ -1090,10 +1051,10 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-    var result, _id;
-    _id = translations_editing_tests_collection.insertTranslations({
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
+    Meteor.settings.public.currentLanguage = "aa";
+    var result;
+    var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
       b: 2
     }, {
@@ -1129,10 +1090,10 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - complete remove - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-    var result, _id;
-    _id = translations_editing_tests_collection.insertTranslations({
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - complete remove - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
+    Meteor.settings.public.currentLanguage = "aa";
+    var result;
+    var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
       b: 2
     }, {
@@ -1160,10 +1121,10 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - attempt complete remove base language - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
-    Meteor.settings.currentLanguage = "aa";
-    var result, _id;
-    _id = translations_editing_tests_collection.insertTranslations({
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - attempt complete remove base language - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
+    Meteor.settings.public.currentLanguage = "aa";
+    var result;
+    var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
       b: 2
     }, {
