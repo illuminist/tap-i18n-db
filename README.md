@@ -1,15 +1,14 @@
 # tap-i18n-db
 
-Extends the tap:i18n package to allow the translation of collections.
+Allows the translation of collections.
 
 ### Internationalization for Meteor Collections
 
-**tap-i18n-db** is a [Meteor](http://www.meteor.com) package that
-extends [tap-i18n](https://github.com/TAPevents/tap-i18n) to allow the translation of collections.
+**tap-i18n-db** is a [Meteor](http://www.meteor.com) package that allow the translation of collections.
 
 [Watch a talk about tap:i18n-db](https://www.youtube.com/watch?v=cu_dsoIc_0E).
 
-Developed by <a href="http://www.meteorspark.com"><img src="http://www.meteorspark.com/logo/logo-github.png" title="MeteorSpark" alt="MeteorSpark"></a> [Professional Meteor Services](http://www.meteorspark.com)<br/> for <a href="http://tapevents.com/"><img src="http://tapevents.com/wp-content/uploads/2015/02/TAPevents_logo_144px.png" title="TAPevents" alt="TAPevents" style='margin-top:10px'>&nbsp; Event Apps Hong Kong</a>.
+Originally Developed by <a href="http://www.meteorspark.com"><img src="http://www.meteorspark.com/logo/logo-github.png" title="MeteorSpark" alt="MeteorSpark"></a> [Professional Meteor Services](http://www.meteorspark.com)<br/> for <a href="http://tapevents.com/"><img src="http://tapevents.com/wp-content/uploads/2015/02/TAPevents_logo_144px.png" title="TAPevents" alt="TAPevents" style='margin-top:10px'>&nbsp; Event Apps Hong Kong</a>.
 
 ## Key Features
 
@@ -33,13 +32,19 @@ Developed by <a href="http://www.meteorspark.com"><img src="http://www.meteorspa
 $ meteor add tap:i18n-db
 ```
 
-**Step 2:** Initialize the collection you wish to translate with `new TAPi18n.Collection`
+**Step 2:** Import `i18nCollection` to a file;
 
 ```javascript
-Inventors = new TAPi18n.Collection("inventors");
+import 'i18nCollection' from 'meteor/tap:i18n-db';
 ```
 
-**Step 3:** Insert translated documents with `insertTranslations`
+**Step 3:** Initialize the collection you wish to translate with `new i18nCollection`
+
+```javascript
+Inventors = new i18nCollection("inventors");
+```
+
+**Step 4:** Insert translated documents with `insertTranslations`
 
 ```javascript
 id = Inventors.insertTranslations({born: 1856, name: "Nikola Tesla"}, {
@@ -60,7 +65,7 @@ Inventors.updateTranslations(id, {
 
 ```
 
-If you are updating from the client, you can use the `translate` method to translate a document to the session's current language. In the following example, we assume that `TAPi18n.getLanguage()` returns `ru` (Russian):
+If you are updating from the client, you can use the `translate` method to translate a document to the session's current language. In the following example, we assume that `Meteor.settings.currentLanguage` returns `ru` (Russian):
 
 ```javascript
 Inventors.translate(id, {name: 'Ни́кола Те́сла'});
@@ -72,13 +77,13 @@ This is equivalent to the above `updateTranslations` example.
 
 ```javascript
 if (Meteor.isServer) {
-    TAPi18n.publish("inventors", function (born_after) {
+    Meteor.i18nPublish("inventors", function (born_after) {
         return Inventors.i18nFind({born: {$gt: born_after}});
     });
 }
 
 if (Meteor.isClient) {
-    TAPi18n.subscribe("inventors", 1800);
+    Meteor.i18nSubscribe("inventors", 1800);
 }
 ```
 
@@ -93,7 +98,7 @@ Template.inventors.helpers({
 })
 
 Meteor.startup(function() {
-    TAPi18n.setLanguage("ru");
+    Meteor.setting.currentLanguage = "ru";
 });
 ```
 
@@ -110,24 +115,28 @@ The above template will automatically render correct translations based on the c
 
 **Step 6:** If you already use tap-i18n to internationalize your UI, you are done!
 
-Otherwise, add **project-tap.i18n** file to your project's **root** with the list of
-languages tags you want your project to support.
+Otherwise, add **settings.json** file to your project's **root** with the list of
+languages tags you want your project to support. Then run meteor with `--settings settings.json` option.
 
 ```javascript
-// project-root/project-tap.i18n
+// project-root/
 {
-    "supported_languages": ["en", "fr", "ru", "pt-BR"]
+  "public":{
+    "supportedLanguages": ["en", "fr", "ru", "pt-BR"]
+  }
 }
 ```
 
-For more details about **project-tap.i18n** please refer to [tap-i18n's README](https://github.com/TAPevents/tap-i18n#configuring-tap-i18n-build-process).
+```bash
+meteor --settings settings.json
+```
 
 
 ## Caveats
 
 
 * You must use `i18nFind` for publications. User regular `find` everywhere else.
-* `TAPi18n.publish(null, ...)` is not supported. You must name each publication.
+* `Meteor.i18nPublish(null, ...)` is not supported. You must name each publication.
 * We assume that the fields in your document are in English, if it
 isn't the case, use the `base_language` option of the [tap-i18n-db collection constructor](#tap-i18n-db-collections) to set the correct language.
 * If you want to use an *inclusive* `fields` option in a **client-side** query, `i18n` must be part of the fields subset. Otherwise, it won't be reactive, e.g. `Inventors.find({}, {fields: {born: 1, i18n: 1}});`.
@@ -221,27 +230,22 @@ background about tap-i18n and package development. You don't need to follow the
 
 ## API
 
-### Relevant tap-i18n Methods
-
-**TAPi18n.setLanguage(language\_tag)** *Client*
-
-Documentation available on [TAPi18n's README](https://github.com/TAPevents/tap-i18n#tapi18n-api).
-
-**Note:** The returned deferred object resolves or fails when the language
-file load succeed or fail. The actual load of the collections translations
-begins upon resolution of the deferred (upon successful language change).
+To change client language, use
+```javascript
+Meteor.settings.currentLanguage = <new_language>;
+```
 
 ### tap-i18n-db Collections
 
-**TAPi18n.Collection(name, options)** *Anywhere*
+**i18nCollection(name, options)** *Anywhere*
 
 Constructor for tap-i18n-db collections.
 
-It extends Meteor.Collection with the TAPi18n.Collection API.
+It extends Meteor.Collection with the i18nCollection API.
 
 **Additional options:**
 
-On top of the options [supported by Meteor.Collection](http://docs.meteor.com/#collections), TAPi18n.Collection also
+On top of the options [supported by Meteor.Collection](http://docs.meteor.com/#collections), i18nCollection also
 has:
 
 *base_language*: We assume that the fields in your document are in English, if
@@ -253,13 +257,13 @@ for arguments documentation.
 
 ### Publish and Subscribe
 
-**TAPi18n.publish(name, func)** *Server*
+**Meteor.i18nPublish(name, func)** *Server*
 
 Publish a language aware record set.
 
 Use just like you use [Meteor.publish()](http://docs.meteor.com/#meteor_publish),
 but instead of using Collection.find() to generate a cursor use
-`tap_i18n_collection.i18nFind()`.
+`i18n_col.i18nFind()`.
 
 Inside *func* you can get the client's language tag with `this.language`. It
 will be null if language is not defined.
@@ -267,18 +271,18 @@ will be null if language is not defined.
 Just like it works in `Meteor.publish()` the publish function can return cursors,
 or control its published record set directly.
 
-Note: `TAPi18n.publish(null, ...)` is not supported.
+Note: `Meteor.i18nPublish(null, ...)` is not supported.
 
-**tap_i18n_collection.i18nFind(selector, [options])** *Server*
+**i18n_collection.i18nFind(selector, [options])** *Server*
 
-Generates a language aware cursor for the publish methods of TAPi18n.publish.
+Generates a language aware cursor for the publish methods of Meteor.i18nPublish.
 
 This method will work only when it's called from a publish methods of
-TAPi18n.publish().
+Meteor.i18nPublish().
 
 Use just like you use [collection.find()](http://docs.meteor.com/#find).
 
-**TAPi18n.subscribe(name [, arg1, arg2, ... ] [, callbacks])** *Client*
+**Meteor.i18nSubscribe(name [, arg1, arg2, ... ] [, callbacks])** *Client*
 
 Subscribe to a tap-i18n-db publication.
 
@@ -286,7 +290,7 @@ Use just like you use [Meteor.subscribe()](http://docs.meteor.com/#meteor_subscr
 
 ### Collections - Translations Editing
 
-**tap_i18n_collection.insertTranslations(doc, translations, [callback])** *Anywhere*
+**i18n_collection.insertTranslations(doc, translations, [callback])** *Anywhere*
 
 Insert a document and its translations into the collection. Returns its unique _id.
 
@@ -318,28 +322,28 @@ The *doc* and *callback* arguments are just like [collection.insert()](http://do
 Example:
 
 ```javascript
-tap_i18n_col.insertTranslations({a: 1, b: 5}, {aa: {c: 3}, en: {b: 2, d: 4}});
+i18n_col.insertTranslations({a: 1, b: 5}, {aa: {c: 3}, en: {b: 2, d: 4}});
 // -> will insert: {a: 1, b: 2, d: 4, i18n: {aa: {c: 3}}, _id: _id}
 ```
 
-**tap_i18n_collection.updateTranslations(selector, translations, [options], [callback])** *Anywhere*
+**i18n_collection.updateTranslations(selector, translations, [options], [callback])** *Anywhere*
 
 Merge *translations* with the existing translations of the selected
 documents. Returns the number of affected documents.
 
-The *translations* argument should be like the one of *tap_i18n_collection.insertTranslations()*
+The *translations* argument should be like the one of *i18n_collection.insertTranslations()*
 
 The *selector*, *options* and *callback* arguments are just like [collection.update()](http://docs.meteor.com/#update)
 
 Example:
 
 ```javascript
-_id = tap_i18n_col.insertTranslations({a: 5, b: 2}, {aa: {x: 4, y: 2}, "aa-AA": {l: 1}})
-tap_i18n_col.updateTranslations(_id, {en: {a: 1}, aa: {x: 1}})
+_id = i18n_col.insertTranslations({a: 5, b: 2}, {aa: {x: 4, y: 2}, "aa-AA": {l: 1}})
+i18n_col.updateTranslations(_id, {en: {a: 1}, aa: {x: 1}})
 // resulted document -> {a: 1, b: 2, i18n: {aa: {x: 1, y: 2}, "aa-AA": {l: 1}}, _id: _id}
 ```
 
-**tap_i18n_collection.removeTranslations(selector, fields, [options], [callback])** *Anywhere*
+**i18n_collection.removeTranslations(selector, fields, [options], [callback])** *Anywhere*
 
 Remove translations from the selected documents. Returns the number of affected
 documents.
@@ -369,13 +373,13 @@ just like [collection.update()](http://docs.meteor.com/#update)
 Example:
 
 ```javascript
-_id = tap_i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2}, "aa-AA": {l: 1, m: 2}})
-tap_i18n_col.removeTranslations(_id, ["en.a", "aa.y", "aa-AA"]);
+_id = i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2}, "aa-AA": {l: 1, m: 2}})
+i18n_col.removeTranslations(_id, ["en.a", "aa.y", "aa-AA"]);
 // -> result: {b: 2, i18n: {aa: {x: 1}}, _id: _id}
 ```
 
-**tap_i18n_collection.insertLanguage(doc, language_translations, [language_tag=TAPi18n.getLanguage()], [callback])** *Client*  
-**tap_i18n_collection.insertLanguage(doc, language_translations, language_tag, [callback])** *Server*
+**i18n_collection.insertLanguage(doc, language_translations, [language_tag=Meteor.settings.currentLanguage], [callback])** *Client*  
+**i18n_collection.insertLanguage(doc, language_translations, language_tag, [callback])** *Server*
 
 Insert a document into the collection with translations to the specified
 language_tag. Returns its unique _id.
@@ -393,7 +397,7 @@ language_tag. Returns its unique _id.
 ```
 
 *language_tag* is by default the current client's language or one of the
-supported languages tags, if no language is set (TAPi18n.getLanguage() returns
+supported languages tags, if no language is set (Meteor.settings.currentLanguage is
 null) you must set the language_tag yourself. On the server you must specify
 *language_tag*.
 
@@ -409,31 +413,31 @@ log will be sent to the console if there is no callback).
 Example:
 
 ```javascript
-// Assuming tap_i18n_col base language is "en"
-tap_i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4}, "en");
+// Assuming i18n_col base language is "en"
+i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4}, "en");
 // -> will insert: {a: 1, b: 2, d: 4, _id: _id}
 
-tap_i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4}, "ru");
+i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4}, "ru");
 // -> will insert: {a: 1, b: 2, d: 4, _id: _id}
 
 // only client side
-TAPi18n.setLanguage("zh")
+Meteor.settings.currentLanguage = "zh";
   .done(function () {
-    tap_i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4});
+    i18n_col.insertLanguage({a: 1, b: 5}, {b: 2, d: 4});
     // -> will insert: {a: 1, b: 5, i18n: {zh: {b: 2, d: 4}}, _id: _id}
   });
 ```
 
-**tap_i18n_collection.updateLanguage(selector, language_translations, [language_tag=TAPi18n.getLanguage()], [options], [callback])** *Client*   
-**tap_i18n_collection.updateLanguage(selector, language_translations, language_tag, [options], [callback])** *Server*
+**i18n_collection.updateLanguage(selector, language_translations, [language_tag=Meteor.settings.currentLanguage], [options], [callback])** *Client*   
+**i18n_collection.updateLanguage(selector, language_translations, language_tag, [options], [callback])** *Server*
 
-*Alias: tap_i18n.translate*
+*Alias: i18n_colllection.translate*
 
 Merge *language_translations* with the existing translations of language_tag in
 the selected documents. Returns the number of affected documents.
 
 The *language_translations* and *language_tag* arguments should be like in
-*tap_i18n_collection.insertLanguage()*.
+*i18n_collection.insertLanguage()*.
 
 The *selector*, *options* and *callback* arguments are just like in
 [collection.update()](http://docs.meteor.com/#update).
@@ -441,22 +445,20 @@ The *selector*, *options* and *callback* arguments are just like in
 Example:
 
 ```javascript
-TAPi18n.setLanguage("aa")
-  .done(function () {
-    _id = tap_i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 9, y: 2, z: 1}})
-    tap_i18n_col.updateLanguage(_id, {x: 1, z: 3});
-    // -> result: {a: 1, b: 2, i18n: {aa: {x: 1, y: 2, z: 3}}, _id: _id}
-  });
+Meteor.settings.currentLanguage = "aa";
+_id = i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 9, y: 2, z: 1}})
+i18n_col.updateLanguage(_id, {x: 1, z: 3});
+// -> result: {a: 1, b: 2, i18n: {aa: {x: 1, y: 2, z: 3}}, _id: _id}
 ```
 
-**tap_i18n_collection.removeLanguage(selector, fields, [language_tag=TAPi18n.getLanguage()], [options], [callback])** *Client*  
-**tap_i18n_collection.removeLanguage(selector, fields, language_tag, [options], [callback])** *Server*
+**i18n_collection.removeLanguage(selector, fields, [language_tag=Meteor.settings.currentLanguage], [options], [callback])** *Client*  
+**i18n_collection.removeLanguage(selector, fields, language_tag, [options], [callback])** *Server*
 
 Remove *language_tag*'s translations from the selected documents. Returns the
 number of affected documents.
 
 The *language_tag* argument should be like in
-*tap_i18n_collection.insertLanguage()*.
+*i18n_collection.insertLanguage()*.
 
 *fields* should be an array of fields which their translations to
 *language_tag* you want to remove, example:
@@ -480,18 +482,17 @@ like [collection.update()](http://docs.meteor.com/#update)
 Example:
 
 ```javascript
-TAPi18n.setLanguage("aa")
-  .done(function () {
-    // remove some translations of language aa
-    _id = tap_i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2, z: 3}})
-    tap_i18n_col.removeLanguage(_id, ["x", "z"]);
-    // -> result: {a: 1, b: 2, i18n: {aa: {y: 2}}, _id: _id}
+Meteor.settings.currentLanguage = "aa";
+// remove some translations of language aa
+_id = i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2, z: 3}})
+i18n_col.removeLanguage(_id, ["x", "z"]);
+// -> result: {a: 1, b: 2, i18n: {aa: {y: 2}}, _id: _id}
 
-    // remove all the translations of language aa
-    _id = tap_i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2, z: 3}, "aa-AA": {l: 1}})
-    tap_i18n_col.removeLanguage(_id, null);
-    // -> result: {a: 1, b: 2, i18n: {"aa-AA": {l: 1}}, _id: _id}
-  });
+// remove all the translations of language aa
+_id = i18n_col.insertTranslations({a: 1, b: 2}, {aa: {x: 1, y: 2, z: 3}, "aa-AA": {l: 1}})
+i18n_col.removeLanguage(_id, null);
+// -> result: {a: 1, b: 2, i18n: {"aa-AA": {l: 1}}, _id: _id}
+
 ```
 
 ## Unit Testing
@@ -519,9 +520,12 @@ You can also test a specific environment:
     # tap-i18n enabled in the project level the autopublish package is installed - default project-tap.i18n
     $ ./unittest/unittest-enabled_autopublish
 
-## Author
+## Original Author
 
 [Daniel Chcouri](http://theosp.github.io/)
+
+## Javascript - TAPi18n independency version
+[Witsarut Sawetkanit](https://github.com/illuminist/)
 
 ## Contributors
 
@@ -531,7 +535,5 @@ You can also test a specific environment:
 ## Credits
 
 * [tap-i18n](https://github.com/TAPevents/tap-i18n)
-
-Sponsored by [TAPevents](http://tapevents.com)
 
 
