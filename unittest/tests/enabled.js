@@ -56,7 +56,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertTranslations - uns
       c: 3
     }
   }, function(err, id) {
-    test.isFalse(id);
+    test.isUndefined(id);
     test.instanceOf(err, Meteor.Error);
     if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
@@ -116,7 +116,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
     b: 2,
     d: 4
   }, "ru", function(err, id) {
-    test.isFalse(id);
+    test.isUndefined(id);
     test.instanceOf(err, Meteor.Error);
     if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
@@ -133,7 +133,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - languag
     b: 2,
     d: 4
   }, function(err, id) {
-    test.isFalse(id);
+    test.isUndefined(id);
     test.instanceOf(err, Meteor.Error);
     if(err) test.equal(err.reason, "Missing language_tag");
     test.isNull(result);
@@ -209,7 +209,10 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - emp
     }
   });
   // After 2014 version of mongodb, empty modifier wasn't allowed anymore
-  translations_editing_tests_collection.updateTranslations(_id,{},function(err,id){
+  translations_editing_tests_collection.updateTranslations(_id,{},function(err, affected_rows){
+    test.instanceOf(err, Meteor.Error);
+    test.isUndefined(affected_rows);
+    if(err) test.equal(err.reason, "Modifier is empty");
     test.equal(translations_editing_tests_collection.findOne(_id, {
       transform: null
     }), {
@@ -239,7 +242,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - updateTranslations - uns
       c: 3
     }
   }, function(err, id) {
-    test.isFalse(id);
+    test.isUndefined(id);
     test.instanceOf(err, Meteor.Error);
     if(err) test.equal(err.reason, "Not supported language: ru");
     test.isNull(result);
@@ -274,7 +277,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - translate - valid update
     n: 3
   }, "aa-AA", {}, function(err, affected_rows) {
     return Meteor.setTimeout((function() {
-      test.equal(1, affected_rows);
+      test.equal(affected_rows, 1);
       test.equal(translations_editing_tests_collection.findOne(_id, {
         transform: null
       }), {
@@ -317,13 +320,11 @@ Tinytest.add('tap-i18n-db - translations editing - remove translation - valid re
   });
   result = translations_editing_tests_collection.removeTranslations(_id, ["en.a", "aa.y", "aa-AA"]);
   test.equal(result, 1, "Correct number of affected documents");
-  var errMsg;
-  try{
-    result = translations_editing_tests_collection.removeTranslations(_id, [], {});
-  }catch(err){
-    errMsg = err.message;
-  }
-  test.equal(errMsg, "'$unset' is empty. You must specify a field like so: {$unset: {<field>: ...}}", "Exception from empty remove");
+  translations_editing_tests_collection.removeTranslations(_id, [], {}, (err, affected_rows) => {
+    test.isUndefined(affected_rows);
+    test.instanceOf(err, Meteor.Error);
+    if(err) test.equal(err.reason, "Modifier is empty");
+  });
   return test.equal(translations_editing_tests_collection.findOne(_id, {
     transform: null
   }), {
@@ -353,7 +354,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - att
     }
   });
   return result = translations_editing_tests_collection.removeTranslations(_id, ["en"], function(err, affected_rows) {
-    test.isFalse(affected_rows);
+    test.isUndefined(affected_rows);
     test.instanceOf(err, Meteor.Error);
     if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
     test.isNull(result);
@@ -377,7 +378,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove translation - fie
     }
   });
   return result = translations_editing_tests_collection.removeTranslations(_id, {}, function(err, affected_rows) {
-    test.isFalse(affected_rows);
+    test.isUndefined(affected_rows);
     test.instanceOf(err, Meteor.Error);
     test.isNull(result);
     return onComplete();
@@ -400,19 +401,16 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - valid 
       m: 2
     }
   });
-
   result = translations_editing_tests_collection.removeLanguage(_id, ["a", "c"], "en");
   test.equal(result, 1, "Correct number of affected documents");
   result = translations_editing_tests_collection.removeLanguage(_id, ["x"], "aa", {}, function(err, affected_rows) {
-    return test.equal(affected_rows, 1, "Correct number of affected documents");
+    test.equal(affected_rows, 1, "Correct number of affected documents");
   });
-  var errMsg;
-  try{
-    result = translations_editing_tests_collection.removeLanguage(_id, [], "aa");
-  }catch(err){
-    errMsg = err.message;
-  }
-  test.equal(errMsg, "'$unset' is empty. You must specify a field like so: {$unset: {<field>: ...}}", "Exception from empty remove");
+  translations_editing_tests_collection.removeLanguage(_id, [], "aa", (err, affected_rows) => {
+    test.instanceOf(err, Meteor.Error);
+    test.isUndefined(affected_rows);
+    if(err) test.equal(err.reason, "Modifier is empty");
+  });
   return result = translations_editing_tests_collection.removeLanguage(_id, null, "aa-AA", function(err, affected_rows) {
     return Meteor.setTimeout((function() {
       test.equal(affected_rows, 1, "Correct number of affected documents");
@@ -449,7 +447,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - attemp
   });
   return translations_editing_tests_collection.removeLanguage(_id, null, "en", function(err, affected_rows) {
     return Meteor.setTimeout((function() {
-      test.isFalse(affected_rows);
+      test.isUndefined(affected_rows);
       test.instanceOf(err, Meteor.Error);
       if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
       return onComplete();
@@ -473,7 +471,7 @@ Tinytest.addAsync('tap-i18n-db - translations editing - remove language - fields
     }
   });
   return result = translations_editing_tests_collection.removeLanguage(_id, {}, "aa", function(err, affected_rows) {
-    test.isFalse(affected_rows);
+    test.isUndefined(affected_rows);
     test.instanceOf(err, Meteor.Error);
     test.isNull(result);
     return onComplete();
@@ -492,6 +490,7 @@ if (Meteor.isClient) {
   document.title = "UnitTest: tap-i18n-db used in a tap-i18n enabled project";
   var supportedLanguages = Meteor.settings.public.supportedLanguages;
   var max_document_id = share.max_document_id;
+
   const get_general_classed_collections = function(class_suffix) {
     if (class_suffix == null) {
       class_suffix = "";
@@ -518,24 +517,28 @@ if (Meteor.isClient) {
       }).fetch())
     ];
     var docs = [];
-    for (var i = 0; i < max_document_id; i++) {
+    _.times(max_document_id,(i)=>{
       if (i in collections_docs[i % 3]) {
         if (collections_docs[i % 3][i] != null) {
           docs.push(collections_docs[i % 3][i]);
         }
       }
-    }
+    });
     return docs;
   };
+
   const get_basic_collections_docs = function() {
     return get_general_classed_collections();
   };
+
   const get_regular_base_language_collections_docs = function() {
     return get_general_classed_collections("_aa");
   };
+
   const get_dialect_base_language_collections_docs = function() {
     return get_general_classed_collections("_aa-AA");
   };
+
   const get_all_docs = function() {
     var basic = get_basic_collections_docs();
     var regular_lang = get_regular_base_language_collections_docs();
@@ -548,17 +551,17 @@ if (Meteor.isClient) {
       all: all
     };
   };
+
   var subscription_a = null;
   var subscription_b = null;
   var subscription_c = null;
   const stop_all_subscriptions = function() {
-    _.each(
-      _.filter(
-        [subscription_a, subscription_b, subscription_c], (o)=>!_.isNull(o)
-      ), (o)=>o.stop()
-    );
+    _.chain([subscription_a, subscription_b, subscription_c])
+      .filter((o)=> !_.isNull(o))
+      .each((o)=> o.stop());
     return Deps.flush();
   };
+
   const subscribe_simple_subscriptions = function() {
     stop_all_subscriptions();
     var a_dfd = new $.Deferred();
@@ -590,15 +593,16 @@ if (Meteor.isClient) {
     });
     return [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
   };
+
   const subscribe_complex_subscriptions = function() {
     stop_all_subscriptions();
-    var language_to_exclude_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(Meteor.settings.public.currentLanguage) + 1) % supportedLanguages.length];
+    var language_to_exclude_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(Meteor.settings.currentLanguage) + 1) % supportedLanguages.length];
     var a_dfd = new $.Deferred();
     var projection = {
       _id: 1,
       id: 1
     };
-    _.each(_.filter(supportedLanguages,(o)=>o!==language_to_exclude_from_class_a_and_b),
+    _.chain(supportedLanguages).filter((o)=>o!==language_to_exclude_from_class_a_and_b).each(
       (language)=> projection["not_translated_to_" + language] = 1
     );
     subscription_a = Meteor.i18nSubscribe("class_a", projection, {
@@ -622,7 +626,7 @@ if (Meteor.isClient) {
     });
     var c_dfd = new $.Deferred();
     projection = {};
-    projection["not_translated_to_" + (Meteor.settings.public.currentLanguage)] = 0;
+    projection["not_translated_to_" + (Meteor.settings.currentLanguage)] = 0;
     subscription_c = Meteor.i18nSubscribe("class_c", projection, {
       onReady: (function() {
         return c_dfd.resolve();
@@ -633,37 +637,36 @@ if (Meteor.isClient) {
     });
     return [[subscription_a, subscription_b, subscription_c], [a_dfd, b_dfd, c_dfd]];
   };
+
   const validate_simple_subscriptions_documents = function(test, subscriptions, documents) {
-    var current_language = Meteor.settings.public.currentLanguage;
-    var i18n_supported = !_.isNull(current_language);
+    var current_language = Meteor.settings.currentLanguage;
+    var i18n_supported = current_language != null;
     var base_language_by_collection_type = {
       basic: test_collections.a._base_language,
       regular_lang: test_collections.a_aa._base_language,
       dialect: test_collections["a_aa-AA"]._base_language
     };
-    var _results = [];
-    for (var collection_type in base_language_by_collection_type) {
+    _.each(_.keys(base_language_by_collection_type), (collection_type) => {
       var collection_base_language = base_language_by_collection_type[collection_type];
       var collection_type_documents = documents[collection_type];
-      _results.push(_.each(collection_type_documents, function(doc) {
-        var expected_value, value;
-        var _results1 = [];
-        _.each(supportedLanguages,(language_property_not_translated_to)=>{
+      _.each(collection_type_documents, (doc) => {
+        _.each(supportedLanguages, (language_property_not_translated_to) => {
           var should_translate_to = current_language;
           if (_.isNull(should_translate_to)) {
             should_translate_to = collection_base_language;
           }
           var should_translate_to_dialect_of = share.dialectOf(should_translate_to);
           var property = "not_translated_to_" + language_property_not_translated_to;
-          value = doc[property];
+          var value = doc[property];
+          var expected_value;
           if (should_translate_to !== language_property_not_translated_to) {
-            expected_value = property + "-" + should_translate_to + "-" + doc.id;
+            expected_value = property + "^" + should_translate_to + "-" + doc.id;
           } else {
             if (i18n_supported) {
-              if (!_.isNull(should_translate_to_dialect_of)) {
-                expected_value = property + "-" + should_translate_to_dialect_of + "-" + doc.id;
+              if (should_translate_to_dialect_of != null) {
+                expected_value = property + "^" + should_translate_to_dialect_of + "-" + doc.id;
               } else if (collection_base_language !== should_translate_to) {
-                expected_value = property + "-" + collection_base_language + "-" + doc.id;
+                expected_value = property + "^" + collection_base_language + "-" + doc.id;
               } else {
                 expected_value = void 0;
               }
@@ -671,24 +674,22 @@ if (Meteor.isClient) {
               expected_value = void 0;
             }
           }
-          _results1.push(test.equal(expected_value, value));
+          test.equal(value, expected_value);
         });
-        return _results1;
-      }));
-    }
-    return _results;
+      });
+    });
   };
+
   const validate_complex_subscriptions_documents = function(test, subscriptions, documents) {
-    var current_language = Meteor.settings.public.currentLanguage;
+    var current_language = Meteor.settings.currentLanguage;
     var i18n_supported = current_language != null;
     var base_language_by_collection_type = {
       basic: test_collections.a._base_language
     };
-    var _results = [];
-    for (var collection_type in base_language_by_collection_type) {
+    _.each(_.keys(base_language_by_collection_type), (collection_type) => {
       var collection_base_language = base_language_by_collection_type[collection_type];
       var collection_type_documents = documents[collection_type];
-      _results.push(_.each(collection_type_documents, function(doc) {
+      _.each(collection_type_documents, function(doc) {
         var expected_value, value;
         var language_excluded_from_class_a_and_b = supportedLanguages[(supportedLanguages.indexOf(current_language) + 1) % supportedLanguages.length];
         var field_excluded_from_doc = null;
@@ -702,7 +703,6 @@ if (Meteor.isClient) {
           case 2:
             field_excluded_from_doc = current_language;
         }
-        var _results1 = [];
         _.each(supportedLanguages,(language_property_not_translated_to)=>{
           var should_translate_to = current_language;
           if (should_translate_to === null) {
@@ -714,13 +714,13 @@ if (Meteor.isClient) {
           if (language_property_not_translated_to === field_excluded_from_doc) {
             expected_value = void 0;
           } else if (should_translate_to !== language_property_not_translated_to) {
-            expected_value = property + "-" + should_translate_to + "-" + doc.id;
+            expected_value = property + "^" + should_translate_to + "-" + doc.id;
           } else {
             if (i18n_supported) {
               if (should_translate_to_dialect_of != null) {
-                expected_value = property + "-" + should_translate_to_dialect_of + "-" + doc.id;
+                expected_value = property + "^" + should_translate_to_dialect_of + "-" + doc.id;
               } else if (collection_base_language !== should_translate_to) {
-                expected_value = property + "-" + collection_base_language + "-" + doc.id;
+                expected_value = property + "^" + collection_base_language + "-" + doc.id;
               } else {
                 expected_value = void 0;
               }
@@ -728,13 +728,12 @@ if (Meteor.isClient) {
               expected_value = void 0;
             }
           }
-          _results1.push(test.equal(expected_value, value, "col_type=" + collection_type + ", property=" + property));
+          test.equal(value, expected_value, "col_type=" + collection_type + ", property=" + property);
         });
-        return _results1;
-      }));
-    }
-    return _results;
+      });
+    });
   };
+
   const general_tests = function(test, subscriptions, documents) {
     test.equal(documents.all.length, max_document_id * 3, "Expected documents count in collections");
     return test.isTrue(_.reduce(_.map(documents.all, function(doc) {
@@ -743,7 +742,9 @@ if (Meteor.isClient) {
       return memo && current;
     }), true), "The subdocument i18n is not part of the documents");
   };
+
   const null_language_tests = function(test, subscriptions, documents) {};
+
   Tinytest.addAsync('tap-i18n-db - language: null; simple pub/sub - general tests', function(test, onComplete) {
     const subscriptions = subscribe_simple_subscriptions();
     const test_case = _.once(function() {
@@ -777,7 +778,7 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: en; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "en";
+    Meteor.settings.currentLanguage = "en";
     const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
       const documents= get_all_docs();
@@ -788,7 +789,7 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: en; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.public.currentLanguage = "en";
+      Meteor.settings.currentLanguage = "en";
       const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
         const documents= get_all_docs();
@@ -799,7 +800,7 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: aa; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+    Meteor.settings.currentLanguage = "aa";
     const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
       const documents= get_all_docs();
@@ -810,7 +811,7 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: aa; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.public.currentLanguage = "aa";
+      Meteor.settings.currentLanguage = "aa";
       const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
         const documents= get_all_docs();
@@ -821,7 +822,7 @@ if (Meteor.isClient) {
     });
   }
   Tinytest.addAsync('tap-i18n-db - language: aa-AA; simple pub/sub - general tests', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa-AA";
+    Meteor.settings.currentLanguage = "aa-AA";
     const subscriptions = subscribe_simple_subscriptions();
     return $.when.apply(this, subscriptions[1]).done(function() {
       const documents= get_all_docs();
@@ -832,7 +833,7 @@ if (Meteor.isClient) {
   });
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - language: aa-AA; complex pub/sub - general tests', function(test, onComplete) {
-      Meteor.settings.public.currentLanguage = "aa-AA";
+      Meteor.settings.currentLanguage = "aa-AA";
       const subscriptions = subscribe_complex_subscriptions();
       return $.when.apply(this, subscriptions[1]).done(function() {
         const documents= get_all_docs();
@@ -861,7 +862,7 @@ if (Meteor.isClient) {
     });
   });
   Tinytest.addAsync('tap-i18n-db - reactivity test - simple subscription', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = supportedLanguages[0];
+    Meteor.settings.currentLanguage = supportedLanguages[0];
     const subscriptions = subscribe_simple_subscriptions();
     var last_invalidation = null;
     var documents = null;
@@ -872,12 +873,12 @@ if (Meteor.isClient) {
     var interval_handle;
     return interval_handle = Meteor.setInterval((function() {
       if (last_invalidation + idle_time < share.now()) {
-        console.log("Testing simple subscriptions' reactivity: language=" + (Meteor.settings.public.currentLanguage));
+        console.log("Testing simple subscriptions' reactivity: language=" + (Meteor.settings.currentLanguage));
         general_tests(test, subscriptions, documents);
         validate_simple_subscriptions_documents(test, subscriptions, documents);
-        var lang_id = supportedLanguages.indexOf(Meteor.settings.public.currentLanguage);
+        var lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage);
         if (lang_id + 1 < supportedLanguages.length) {
-          Meteor.settings.public.currentLanguage = supportedLanguages[lang_id + 1];
+          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
         } else {
           comp.stop();
           Meteor.clearInterval(interval_handle);
@@ -889,7 +890,7 @@ if (Meteor.isClient) {
   if (Package.autopublish == null) {
     Tinytest.addAsync('tap-i18n-db - reactivity test - complex subscription', function(test, onComplete) {
       stop_all_subscriptions();
-      Meteor.settings.public.currentLanguage = supportedLanguages[0];
+      Meteor.settings.currentLanguage = supportedLanguages[0];
       var fields_to_exclude = ["not_translated_to_en", "not_translated_to_aa", "not_translated_to_aa-AA"];
       var local_session = new ReactiveDict();
       local_session.set("field_to_exclude", fields_to_exclude[0]);
@@ -948,7 +949,7 @@ if (Meteor.isClient) {
       return interval_handle = Meteor.setInterval((function() {
         var lang_id, projection_id;
         if (last_invalidation + idle_time < share.now()) {
-          console.log("Testing complex subscriptions' reactivity: language=" + (Meteor.settings.public.currentLanguage) + "; field_to_exclude=" + (local_session.get("field_to_exclude")) + "; projection_type=" + (local_session.get("projection_type") ? "inclusive" : "exclusive") + "; projection=" + (EJSON.stringify(fields)));
+          console.log("Testing complex subscriptions' reactivity: language=" + (Meteor.settings.currentLanguage) + "; field_to_exclude=" + (local_session.get("field_to_exclude")) + "; projection_type=" + (local_session.get("projection_type") ? "inclusive" : "exclusive") + "; projection=" + (EJSON.stringify(fields)));
         }
         general_tests(test, subscriptions, documents);
         documents.all.forEach(function(doc) {
@@ -959,8 +960,8 @@ if (Meteor.isClient) {
         } else if (local_session.get("projection_type") === 1 && ((projection_id = fields_to_exclude.indexOf(local_session.get("field_to_exclude"))) + 1) < fields_to_exclude.length) {
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[projection_id + 1]);
-        } else if ((lang_id = supportedLanguages.indexOf(Meteor.settings.public.currentLanguage)) + 1 < supportedLanguages.length) {
-          Meteor.settings.public.currentLanguage = supportedLanguages[lang_id + 1];
+        } else if ((lang_id = supportedLanguages.indexOf(Meteor.settings.currentLanguage)) + 1 < supportedLanguages.length) {
+          Meteor.settings.currentLanguage = supportedLanguages[lang_id + 1];
           local_session.set("projection_type", 0);
           return local_session.set("field_to_exclude", fields_to_exclude[0]);
         } else {
@@ -974,8 +975,8 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isClient) {
-  Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+  Tinytest.addAsync('tap-i18n-db - translations editing - insertLanguage - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
+    Meteor.settings.currentLanguage = "aa";
     var _id;
     return test.equal(translations_editing_tests_collection.findOne(_id = translations_editing_tests_collection.insertLanguage({
       a: 1,
@@ -1001,8 +1002,8 @@ if (Meteor.isClient) {
       _id: _id
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - translate - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+  Tinytest.addAsync('tap-i18n-db - translations editing - translate - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
+    Meteor.settings.currentLanguage = "aa";
     var result;
     var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
@@ -1051,8 +1052,8 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
+    Meteor.settings.currentLanguage = "aa";
     var result;
     var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
@@ -1090,8 +1091,8 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - complete remove - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - complete remove - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
+    Meteor.settings.currentLanguage = "aa";
     var result;
     var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
@@ -1121,8 +1122,8 @@ if (Meteor.isClient) {
       }), 1000);
     });
   });
-  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - attempt complete remove base language - language_tag=Meteor.settings.public.currentLanguage', function(test, onComplete) {
-    Meteor.settings.public.currentLanguage = "aa";
+  Tinytest.addAsync('tap-i18n-db - translations editing - removeLanguage - attempt complete remove base language - language_tag=Meteor.settings.currentLanguage', function(test, onComplete) {
+    Meteor.settings.currentLanguage = "en"; // Collection base language is a fallback language : 'en'
     var result;
     var _id = translations_editing_tests_collection.insertTranslations({
       a: 5,
@@ -1139,7 +1140,7 @@ if (Meteor.isClient) {
     });
     return result = translations_editing_tests_collection.removeLanguage(_id, null, function(err, affected_rows) {
       return Meteor.setTimeout((function() {
-        test.isFalse(affected_rows);
+        test.isUndefined(affected_rows);
         test.instanceOf(err, Meteor.Error);
         if(err) test.equal(err.reason, "Complete removal of collection's base language from a document is not permitted");
         return onComplete();

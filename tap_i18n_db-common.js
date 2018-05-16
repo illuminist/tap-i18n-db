@@ -47,7 +47,7 @@ const commonCollectionExtensions = function(obj) {
   const reportError = function(error, attempted_operation, callback) {
     if (_.isFunction(callback)) {
       Meteor.setTimeout((function() {
-        return callback(error, false);
+        return callback(error);
       }), 0);
     } else {
       console.log(`${attempted_operation} failed: ${error.reason}`);
@@ -68,14 +68,26 @@ const commonCollectionExtensions = function(obj) {
     if (indexOf.call(Meteor.settings.public.supportedLanguages, lang) >= 0) {
       return;
     }
-    return throwError(new Meteor.Error(400, `Not supported language: ${lang}`), attempted_operation, callback);
+    throwError(new Meteor.Error(400, `Not supported language: ${lang}`), attempted_operation, callback);
   };
 
+  const isModifierEmpty = function(modifier, attempted_operation, callback) {
+    if(_.isEmpty(modifier)) {
+      throwError(new Meteor.Error(400, "Modifier is empty"), attempted_operation, callback);
+    }
+  }
+
   const getLanguageOrEnvLanguage = function(language_tag, attempted_operation, callback) {
+    // if no language_tag & isClient, try to get env lang
+    if (Meteor.isClient) {
+      if (language_tag == null) {
+        language_tag = Meteor.settings.currentLanguage;
+      }
+    }
     if (language_tag != null) {
       return language_tag;
     }
-    return throwError(new Meteor.Error(400, "Missing language_tag"), attempted_operation, callback);
+    throwError(new Meteor.Error(400, "Missing language_tag"), attempted_operation, callback);
   };
 
   obj.insertTranslations = function(doc, translations, callback) {
@@ -138,6 +150,11 @@ const commonCollectionExtensions = function(obj) {
         }
       }
     }
+    try {
+      isModifierEmpty(updates, "update", callback);
+    } catch (error1) {
+      return null;
+    }
     return this.update.apply(this, removeTrailingUndefs([
       selector,
       {
@@ -187,6 +204,11 @@ const commonCollectionExtensions = function(obj) {
       } else {
         updates[`i18n.${field}`] = "";
       }
+    }
+    try {
+      isModifierEmpty(updates, "remove translations", callback);
+    } catch (error1) {
+      return null;
     }
     return this.update.apply(this, removeTrailingUndefs([
       selector,
@@ -254,6 +276,7 @@ const commonCollectionExtensions = function(obj) {
 
   // Alias
   obj.translate = obj.updateLanguage;
+
   obj.removeLanguage = function(selector, fields) {
     var _fields_to_remove;
     try {

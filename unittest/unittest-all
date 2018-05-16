@@ -116,7 +116,7 @@ test_enabled () {
 
     meteor_unittests_start "$test_name" "test tap:i18n-db in a project where tap-i18n is enabled"
 
-    echo '{"public":{"supportedLanguages": ["aa-AA","aa","en"], "currentLanguage" : "aa-AA" }}' > settings.json
+    echo '{"public":{"supportedLanguages": ["aa-AA","aa","en"]}}' > settings.json
 
     add_package_js_test_section "$package_js_on_test" "$test_name"
 
@@ -130,7 +130,7 @@ test_enabled_autopublish () {
 
     meteor_unittests_start "$test_name" "test tap:i18n-db in a project where tap-i18n is enabled and the autopublish package is installed"
 
-    echo '{"public":{"supportedLanguages": ["aa-AA","aa","en"], "currentLanguage" : "aa-AA" }}' > settings.json
+    echo '{"public":{"supportedLanguages": ["aa-AA","aa","en"]}}' > settings.json
 
     package_js_on_test="$(cat <<EOF\
     api.use('autopublish', ['client', 'server']);

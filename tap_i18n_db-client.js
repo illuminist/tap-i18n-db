@@ -15,18 +15,18 @@ share.i18nCollectionTransform = function(doc, collection) {
     return doc;
   }
   const dialect_of = share.helpers.dialectOf(language);
-  doc = _.extend({}, doc); // protect original object
+  doc = $.extend({}, doc); // protect original object
   if ((dialect_of != null) && (doc.i18n[dialect_of] != null)) {
     if (language !== collection_base_language) {
-      extend(true, doc, doc.i18n[dialect_of]);
+      $.extend(true, doc, doc.i18n[dialect_of]);
     } else {
       // if the collection's base language is the dialect that is used as the
       // current language
-      doc = extend(true, {}, doc.i18n[dialect_of], doc);
+      doc = $.extend(true, {}, doc.i18n[dialect_of], doc);
     }
   }
   if (doc.i18n[language] != null) {
-    extend(true, doc, doc.i18n[language]);
+    $.extend(true, doc, doc.i18n[language]);
   }
   delete doc.i18n;
   return doc;
