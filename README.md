@@ -1,3 +1,5 @@
+# This branch is discontinued and rebranded to [illuminist-i18n-db](https://github.com/illuminist/illuminist-i18n-db)
+
 # tap-i18n-db
 
 Allows the translation of collections.
